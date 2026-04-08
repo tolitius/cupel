@@ -1,0 +1,76 @@
+# ──────────────────────────────────────────────
+# cupel — config.yml
+# ──────────────────────────────────────────────
+
+models:
+  - your-model-here
+  # local:  Qwen3-32B-8bit, Llama-4-Scout-8bit, ...
+  # cloud:  claude-sonnet-4-6, gpt-4o, deepseek/deepseek-v3.2, ...
+
+eval_set: eval-sets/eval-set.json
+
+output_dir: ./eval-results
+
+# ── inference defaults ──
+
+temperature: 0
+max_tokens: 16384
+
+# thinking: controls <think> reasoning mode
+#   null  = model default (recommended)
+#   0     = disable thinking
+#   4096  = enable with explicit budget
+thinking: null
+
+# ── judge config ──
+# used by "cupel judge" to score collected responses
+#
+# examples:
+#   local judge (same oMLX server):
+#     judge:
+#       model: Qwen3-32B-8bit
+#
+#   anthropic judge:
+#     judge:
+#       model: claude-sonnet-4-6
+#       api_url: https://api.anthropic.com/v1/messages
+#       api_key_env: ANTHROPIC_API_KEY
+#
+#   openrouter judge:
+#     judge:
+#       model: anthropic/claude-sonnet-4-6
+#       api_url: https://openrouter.ai/api/v1/chat/completions
+#       api_key_env: OPENROUTER_API_KEY
+#
+#   openai judge:
+#     judge:
+#       model: gpt-4o
+#       api_url: https://api.openai.com/v1/chat/completions
+#       api_key_env: OPENAI_API_KEY
+
+judge:
+  # model: claude-sonnet-4-6
+  # api_url: https://api.anthropic.com/v1/messages
+  # api_key_env: ANTHROPIC_API_KEY
+
+# ── providers ──
+# cloud providers for running evals (not just judging)
+#
+# providers:
+#   - name: anthropic
+#     api_url: https://api.anthropic.com/v1/messages
+#     api_key_env: ANTHROPIC_API_KEY
+#     models:
+#       - claude-sonnet-4-6
+#
+#   - name: openrouter
+#     api_url: https://openrouter.ai/api/v1/chat/completions
+#     api_key_env: OPENROUTER_API_KEY
+#     models:
+#       - deepseek/deepseek-v3.2
+#
+#   - name: openai
+#     api_url: https://api.openai.com/v1/chat/completions
+#     api_key_env: OPENAI_API_KEY
+#     models:
+#       - gpt-4o

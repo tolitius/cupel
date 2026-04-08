@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <!-- Cupel avatar — dish + particles + gold bead -->
+  <!-- Dish rim -->
+  <circle cx="24" cy="24" r="22" fill="none" stroke="#2C2C2A" stroke-width="1.8"/>
+  <!-- Base metal particles (cool slate, graded opacity) -->
+  <circle cx="9" cy="12" r="2" fill="#7A8899" opacity="0.5"/>
+  <circle cx="6" cy="28" r="1.8" fill="#7A8899" opacity="0.45"/>
+  <circle cx="12" cy="40" r="1.8" fill="#7A8899" opacity="0.48"/>
+  <circle cx="28" cy="43" r="1.6" fill="#7A8899" opacity="0.42"/>
+  <circle cx="40" cy="32" r="1.8" fill="#7A8899" opacity="0.48"/>
+  <circle cx="40" cy="14" r="1.6" fill="#7A8899" opacity="0.42"/>
+  <circle cx="28" cy="6" r="1.8" fill="#7A8899" opacity="0.45"/>
+  <circle cx="16" cy="7" r="1.6" fill="#7A8899" opacity="0.4"/>
+  <!-- Gold bead -->
+  <circle cx="24" cy="24" r="7" fill="#D4A030"/>
+  <circle cx="21.5" cy="21" r="2.5" fill="#E8C25C" opacity="0.45"/>
+</svg>

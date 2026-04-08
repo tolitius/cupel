@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>cupel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Anybody:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/svg+xml" href="cupel-favicon.svg">
+</head>
+<body>
+  <div id="app"></div>
+  <script type="module">
+    import { h, render, Component } from 'https://esm.sh/preact@10.25.4';
+    import { useState, useEffect, useCallback } from 'https://esm.sh/preact@10.25.4/hooks';
+    import htm from 'https://esm.sh/htm@3.1.1';
+
+    const html = htm.bind(h);
+    window.__preact = { h, render, Component, useState, useEffect, useCallback, html };
+
+    const ICONS = {
+      dashboard: html`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 5h16M4 5v14h16V5"/><path d="M8 10v6"/><path d="M12 8v8"/><path d="M16 12v4"/></svg>`,
+      run: html`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 2L3 14h8l-1 8 10-12h-8z"/></svg>`,
+      results: html`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5z"/><path d="M2 12l10 5 10-5"/><path d="M2 17l10 5 10-5"/></svg>`,
+      author: html`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>`,
+      evalset: html`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 9v12"/><circle cx="14" cy="14" r="1" fill="currentColor"/><circle cx="17" cy="14" r="1" fill="currentColor"/><circle cx="14" cy="17.5" r="1" fill="currentColor"/></svg>`,
+      settings: html`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73v.18a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>`,
+    };
+
+    const PAGES = [
+      { id: 'dashboard', icon: 'dashboard', label: 'Dashboard' },
+      { id: 'run', icon: 'run', label: 'Bench It' },
+      { id: 'author', icon: 'author', label: 'Author' },
+      { id: 'evalset', icon: 'evalset', label: 'Eval Set' },
+      { id: 'results', icon: 'results', label: 'Results' },
+      { id: 'settings', icon: 'settings', label: 'Settings', spacer: true },
+    ];
+
+    function getPage() {
+      const raw = location.hash.replace('#/', '').replace('#', '') || 'dashboard';
+      const qIdx = raw.indexOf('?');
+      return qIdx === -1 ? raw : raw.substring(0, qIdx);
+    }
+
+    function getPageParams() {
+      const raw = location.hash.replace('#/', '').replace('#', '') || '';
+      const qIdx = raw.indexOf('?');
+      return qIdx === -1 ? '' : raw.substring(qIdx + 1);
+    }
+
+    function Topbar({ page, providers }) {
+      const PP = { 8000: ['\u2B22', 'oMLX'], 11434: ['\u25CE', 'Ollama'], 1234: ['\u25A3', 'LM Studio'], 30000: ['\u25C8', 'SGLang'] };
+      return html`
+        <div class="topbar">
+          <div class="topbar-left">
+            <span class="logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="20" height="20" style="vertical-align:middle;margin-right:6px"><circle cx="24" cy="24" r="22" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="9" cy="12" r="2" fill="#7A8899" opacity="0.5"/><circle cx="6" cy="28" r="1.8" fill="#7A8899" opacity="0.45"/><circle cx="12" cy="40" r="1.8" fill="#7A8899" opacity="0.48"/><circle cx="28" cy="43" r="1.6" fill="#7A8899" opacity="0.42"/><circle cx="40" cy="32" r="1.8" fill="#7A8899" opacity="0.48"/><circle cx="40" cy="14" r="1.6" fill="#7A8899" opacity="0.42"/><circle cx="28" cy="6" r="1.8" fill="#7A8899" opacity="0.45"/><circle cx="16" cy="7" r="1.6" fill="#7A8899" opacity="0.4"/><circle cx="24" cy="24" r="7" fill="#D4A030"/><circle cx="21.5" cy="21" r="2.5" fill="#E8C25C" opacity="0.45"/></svg>cupel</span>
+            <span class="topbar-crumb">/ <b>${page}</b></span>
+          </div>
+          <div class="topbar-right">
+            ${(providers || []).filter(p => p.status === 'online' && (p.models || []).length > 0).map(p => {
+              const port = parseInt((p.url || '').split(':').pop(), 10);
+              const [avatar, name] = PP[port] || ['\u25CB', p.name || ''];
+              return html`
+                <div class="ppill">
+                  <span style="color:var(--accent);font-size:15px">${avatar}</span>
+                  <span style="font-weight:600;color:var(--text)">${name}</span>
+                  <span class="pdot on"></span>
+                  <span>${p.url}</span>
+                  <span style="color:var(--text-3)">${(p.models || []).length} model${(p.models || []).length !== 1 ? 's' : ''}</span>
+                </div>
+              `;
+            })}
+          </div>
+        </div>
+      `;
+    }
+
+    function Sidebar({ activePage, onNavigate }) {
+      return html`
+        <div class="sidebar">
+          ${PAGES.map(p => html`
+            ${p.spacer ? html`<div style="flex:1"></div>` : null}
+            <button
+              class="sidebar-btn ${activePage === p.id ? 'active' : ''}"
+              onClick=${() => onNavigate(p.id)}
+              title=${p.label}
+            >
+              ${ICONS[p.icon]}
+            </button>
+          `)}
+        </div>
+      `;
+    }
+
+    const pageModules = {};
+    async function loadPage(pageId) {
+      if (!pageModules[pageId]) {
+        try {
+          pageModules[pageId] = await import('./pages/' + pageId + '.js');
+        } catch (e) {
+          console.warn('Page module not found: ' + pageId, e);
+          pageModules[pageId] = {
+            default: () => html`<div class="page" style="padding: 40px; color: var(--text-3)">
+              <div style="font-family: var(--font-label); font-size: 15px">Page "${pageId}" coming soon</div>
+            </div>`
+          };
+        }
+      }
+      return pageModules[pageId].default;
+    }
+
+    function App() {
+      const [page, setPage] = useState(getPage());
+      const [pageParams, setPageParams] = useState(getPageParams());
+      const [providers, setProviders] = useState([]);
+      const [PageComponent, setPageComponent] = useState(null);
+
+      const navigate = useCallback((id) => {
+        if (window.__cupelUnsaved && !confirm('You have unsaved settings changes. Leave without saving?')) return;
+        location.hash = '#/' + id;
+        setPage(id);
+        setPageParams('');
+      }, []);
+
+      useEffect(() => {
+        const onHash = () => {
+          if (window.__cupelUnsaved && !confirm('You have unsaved settings changes. Leave without saving?')) {
+            location.hash = '#/settings';
+            return;
+          }
+          setPage(getPage()); setPageParams(getPageParams());
+        };
+        window.addEventListener('hashchange', onHash);
+        return () => window.removeEventListener('hashchange', onHash);
+      }, []);
+
+      useEffect(() => {
+        loadPage(page).then(comp => setPageComponent(() => comp));
+      }, [page]);
+
+      const refreshProviders = useCallback(() => {
+        fetch('/api/providers').then(r => r.json()).then(setProviders).catch(() => {});
+      }, []);
+
+      useEffect(() => { refreshProviders(); }, []);
+
+      return html`
+        <div class="shell">
+          <${Topbar} page=${page} providers=${providers} />
+          <div class="shell-body">
+            <${Sidebar} activePage=${page} onNavigate=${navigate} />
+            <div class="main">
+              ${PageComponent ? html`<${PageComponent} providers=${providers} params=${pageParams} refreshProviders=${refreshProviders} />` : null}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    render(html`<${App} />`, document.getElementById('app'));
+  </script>
+</body>
+</html>

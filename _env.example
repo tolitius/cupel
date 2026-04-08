@@ -1,0 +1,20 @@
+# ──────────────────────────────────────────────
+# cupel — api keys
+# ──────────────────────────────────────────────
+
+# ── local providers ──
+# per-port keys used by auto-discovery
+OMLX_API_KEY=...         # oMLX / vLLM  (port 8000)
+OLLAMA_API_KEY=...       # Ollama       (port 11434)
+LM_STUDIO_API_KEY=...    # LM Studio    (port 1234)
+SGLANG_API_KEY=...       # SGLang       (port 30000)
+
+# ── cloud providers ──
+ANTHROPIC_API_KEY=...     # anthropic (judge or direct)
+OPENROUTER_API_KEY=...    # openrouter
+OPENAI_API_KEY=...        # openai
+
+# ── legacy / CLI fallback ──
+# only used by "cupel run" when no provider-specific key is set
+# LLM_API_URL=http://localhost:8000/v1/chat/completions
+# LLM_API_KEY=...

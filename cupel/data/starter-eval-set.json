@@ -1,0 +1,120 @@
+{
+  "name": "cupel starter set",
+  "version": "2.0",
+  "description": "8-prompt starter set — covers code review, ML architecture, business logic, system design, math, diagnostics, tool calling, and structured data",
+  "prompts": [
+    {
+      "id": 1,
+      "category": "code_reading",
+      "title": "Rust Code Review — Connection Pool Bug",
+      "prompt": "This Rust code implements a connection pool. Find the bug, explain when it manifests, and suggest improvements:\n\n```rust\nuse std::collections::VecDeque;\nuse std::time::{Duration, Instant};\n\nstruct Conn;\nimpl Conn {\n    fn new() -> Self { Conn }\n}\n\nstruct ConnPool {\n    idle: VecDeque<(Conn, Instant)>,\n    max_idle: usize,\n    max_age: Duration,\n}\n\nimpl ConnPool {\n    fn new(max_idle: usize, max_age: Duration) -> Self {\n        Self {\n            idle: VecDeque::new(),\n            max_idle,\n            max_age,\n        }\n    }\n\n    fn get(&mut self) -> Conn {\n        while let Some((conn, created)) = self.idle.pop_front() {\n            if created.elapsed() < self.max_age {\n                return conn;\n            }\n        }\n        Conn::new()\n    }\n\n    fn put(&mut self, conn: Conn) {\n        if self.idle.len() < self.max_idle {\n            self.idle.push_back((conn, Instant::now()));\n        }\n    }\n}\n```",
+      "rubric": {
+        "3": "Finds the bug: put() records Instant::now() as the timestamp, but get() treats it as creation time and checks it against max_age. Every time a connection is returned, its 'age' resets to zero. Connections are never expired as long as they keep cycling through the pool. Fix: track actual creation time (e.g. store it in Conn, or accept a timestamp parameter in put). Also suggests improvements: no thread safety (needs Mutex for concurrent access), no cap on total connections created, silently drops connections when pool is full (should explicitly close), no health check on get. Clear explanation of when the bug manifests (long-lived connections under steady traffic).",
+        "2": "Finds the timestamp bug OR suggests strong improvements, but not both. Or finds the bug but explains it vaguely without describing the concrete failure scenario.",
+        "1": "Misses the timestamp bug. Only points out missing thread safety or other secondary issues. Or misidentifies a non-bug as the primary issue.",
+        "0": "Doesn't understand the code or invents non-existent bugs."
+      }
+    },
+    {
+      "id": 2,
+      "category": "ml_architecture",
+      "title": "MoE Architecture — Router and Active Params",
+      "prompt": "Explain how a Mixture-of-Experts (MoE) transformer works. Specifically:\n1. What is the router and how does it decide which experts to activate?\n2. What does 'active parameters' mean in a model like '30B-A3B'?\n3. Why is a 30B-A3B MoE model faster at inference than a dense 7B model, despite having 4x more total parameters?",
+      "rubric": {
+        "3": "Router is a learned linear layer that scores each token per expert, top-k selection. Active params = only params used per token (3B of 30B). Speed is bandwidth-bound: fewer active params = less memory read per token = higher tok/s, even though total model is larger. May mention that total model must still fit in memory.",
+        "2": "Correct on all three but missing the bandwidth-bound insight or top-k mechanism detail.",
+        "1": "Understands MoE concept but confuses active vs total params or gets speed reasoning wrong.",
+        "0": "Fundamentally confused about MoE."
+      }
+    },
+    {
+      "id": 3,
+      "category": "business_logic",
+      "title": "Wholesale Tiered Pricing with Returns",
+      "prompt": "A wholesale system uses retrospective tiered pricing:\n- 1–99 units: $10 each\n- 100–499 units: $8 each\n- 500+ units: $6 each\n\nThe tier applies retroactively to ALL units based on total quantity ordered.\n\nTimeline:\n1. Customer orders 400 units → tier is 100–499 → charged 400 × $8 = $3,200\n2. Customer orders 200 more → total is now 600 → tier is 500+ → charged 200 × $6 = $1,200, plus a retroactive credit of 400 × ($8 – $6) = $800 on the first order\n3. Customer returns 250 units → remaining quantity is 350 → tier drops back to 100–499\n\nWhat is the correct refund or charge adjustment for the return in step 3? Show your reasoning.",
+      "rubric": {
+        "3": "Net paid after steps 1-2: $3,200 + $1,200 – $800 = $3,600 (which is 600 × $6, correct). After return, 350 units at $8 tier = $2,800. Refund = $3,600 – $2,800 = $800. Explains that the naive per-unit refund (250 × $6 = $1,500) is wrong because the tier changes. The $700 difference is the retroactive tier bump on remaining units: 350 × ($8 – $6) = $700. So: refund 250 × $6 for returned units ($1,500) minus $700 debit for tier bump on remaining = $800 net refund.",
+        "2": "Identifies that the tier changes and this affects the refund, arrives at approximately the right answer, but explanation is incomplete or arithmetic has a minor error.",
+        "1": "Computes naive refund (250 × $6 = $1,500) without considering the tier change. Or acknowledges the tier changes but cannot compute the correct adjustment.",
+        "0": "Does not understand retrospective tiered pricing or produces nonsensical math."
+      }
+    },
+    {
+      "id": 4,
+      "category": "system_design",
+      "title": "Multi-Tenant API Rate Limiter",
+      "prompt": "Design a rate limiting system for a multi-tenant API platform:\n- Each tenant has a configured requests-per-minute limit (e.g. 1000 rpm)\n- Some endpoints are heavyweight and should count as 5 requests against the limit\n- Tenants can purchase burst capacity: 2× their normal limit for up to 30 seconds\n- The platform runs on 8 API servers behind a load balancer with no sticky sessions\n- Rate-limited responses must include a Retry-After header with seconds until capacity is available\n\nDescribe the architecture. Specifically address:\n1. What data store and why?\n2. How do you prevent race conditions when 8 servers hit the same counter?\n3. What happens when the data store is unavailable — fail open or fail closed?\n4. How do you compute Retry-After accurately?",
+      "rubric": {
+        "3": "Central store (Redis or equivalent) with atomic operations. Sliding window or token bucket with clear tradeoff discussion. Atomic check-and-decrement via Lua script or transaction to prevent race conditions. Weighted endpoints via cost multiplier on the decrement. Burst: separate token pool with TTL or time-limited elevated limit. Fail-open vs fail-closed discussed as a business tradeoff (fail-open risks abuse, fail-closed risks outage for paying customers). Retry-After computed from window reset time or token refill math. May mention: local counters as fallback, clock drift between servers, or periodic-sync alternatives.",
+        "2": "Solid architecture (Redis + token bucket or sliding window) but weak on one critical area: race conditions, burst mechanics, or fail-over strategy.",
+        "1": "Generic 'use Redis' without addressing atomicity. Or proposes per-server in-memory counters without solving the no-sticky-sessions problem. Or hand-waves burst and Retry-After.",
+        "0": "Fundamentally broken: single-server bottleneck, file-based counters, or ignores the distributed nature of the problem."
+      }
+    },
+    {
+      "id": 5,
+      "category": "math_estimation",
+      "title": "Model Memory from Quantization",
+      "prompt": "A model has roughly 27 billion parameters. Estimate the raw memory footprint for:\n- FP16\n- 8-bit\n- 4-bit\n\nIgnore overhead; give rough ballpark values only.",
+      "rubric": {
+        "3": "FP16: ~54GB (2 bytes × 27B). 8-bit: ~27GB (1 byte × 27B). 4-bit: ~13.5GB (0.5 bytes × 27B). May note real-world overhead is higher.",
+        "2": "Correct math for 2 of 3, or all correct but no explanation.",
+        "1": "Gets the general direction (FP16 > 8-bit > 4-bit) but wrong numbers.",
+        "0": "Wrong math or doesn't understand quantization."
+      }
+    },
+    {
+      "id": 6,
+      "category": "diagnostic_reasoning",
+      "title": "Fridge Airflow Troubleshooting",
+      "prompt": "A refrigerator has:\n- freezer is cold\n- refrigerator compartment is warm\n- almost no air felt from the fridge vent\n- a full power-off defrost/reset did not fix it\n\nWhat are the most likely fault categories, in order, before replacing major parts?",
+      "rubric": {
+        "3": "Priority order: evaporator fan failure, damper stuck/broken, iced-over evaporator coils (defrost system), duct obstruction, then sensor/control board. Correctly notes compressor is NOT the issue since freezer is cold. Clear reasoning.",
+        "2": "Correct top causes but wrong order or missing damper/fan distinction.",
+        "1": "Some valid causes but jumps to compressor or major parts too early.",
+        "0": "Doesn't understand the diagnostic logic (freezer cold = compressor works)."
+      }
+    },
+    {
+      "id": 7,
+      "category": "tool_calling",
+      "title": "Stoichiometry — Tool-Assisted Combustion",
+      "turns": [
+        {
+          "messages": [
+            {"role": "system", "content": "You are a chemistry tutor. You have access to these tools:\n\n- periodic_table(symbol) → returns {name, atomic_mass, atomic_number}\n- balance_equation(unbalanced) → returns the balanced equation as a string\n\nCall a tool by writing: TOOL_CALL: tool_name(args)\nYou may call multiple tools at once. Wait for results before doing calculations.\nShow every step of your work."},
+            {"role": "user", "content": "How many liters of CO2 are produced at STP when 144 grams of pentane (C5H12) undergoes complete combustion with excess oxygen? Use the tools to look up what you need."}
+          ]
+        },
+        {
+          "inject_after": [
+            {"role": "user", "content": "TOOL_RESULT: periodic_table(\"C\") => {\"name\": \"Carbon\", \"atomic_mass\": 12.011, \"atomic_number\": 6}\nTOOL_RESULT: periodic_table(\"H\") => {\"name\": \"Hydrogen\", \"atomic_mass\": 1.008, \"atomic_number\": 1}"}
+          ]
+        },
+        {
+          "inject_after": [
+            {"role": "user", "content": "TOOL_RESULT: balance_equation(\"C5H12 + O2 -> CO2 + H2O\") => \"C5H12 + 8O2 → 5CO2 + 6H2O\""}
+          ]
+        }
+      ],
+      "rubric": {
+        "3": "Calls periodic_table for C and H before calculating. Uses the tool-returned masses (12.011, 1.008) to compute molar mass: 5(12.011) + 12(1.008) = 60.055 + 12.096 = 72.151 g/mol. Calls balance_equation before determining stoichiometric ratios. Computes: 144 / 72.151 ≈ 1.995 mol pentane × 5 = ~9.98 mol CO2 × 22.4 L/mol ≈ 223.5 L. All tool calls come BEFORE the math that depends on them. Clear step-by-step work.",
+        "2": "Correct tool calls and roughly correct answer, but uses rounded masses (12, 1 → 72 g/mol → 224 L) instead of tool-provided values. Or correct math but calls tools in wrong order or skips balance_equation.",
+        "1": "Attempts tool calls but doesn't wait for results (computes immediately), or hallucinates tool responses, or makes significant calculation errors after receiving correct results.",
+        "0": "Ignores tools entirely and computes from memory, or fundamentally wrong chemistry."
+      }
+    },
+    {
+      "id": 8,
+      "category": "assistant_competence",
+      "title": "Multi-Entity Data Report — Student Tracker",
+      "prompt": "You are a family assistant that tracks school progress for four children.\n\n=== INSTRUCTIONS ===\nProduce a report with EXACTLY this structure for EACH child:\n\n## [Child Name] — [School Name] ([Grade])\n### Recent Grades (last 7 days ONLY — exclude anything older)\n| Subject | Assignment | Score | % | Date | Flag |\n|---|---|---|---|---|---|\n(sorted by date, newest first. Flag column: use 'LOW' if percentage is below 80%, leave blank otherwise. Scores may not be out of 100 — calculate the percentage from the given score.)\n\n### Upcoming Due Dates\n| Subject | Assignment | Due Date | Status | Urgency |\n|---|---|---|---|---|\n(sorted by due date, soonest first. Urgency: 'OVERDUE' if due date is before today, 'TODAY' if due today, 'SOON' if due within 2 days, blank otherwise)\n\n### Course Averages\nCalculate the average percentage across all graded assignments (last 7 days only) for each child. Show as: 'Average: X.X%'\n\n### Summary\nOne sentence: number of LOWs, number of OVERDUE/TODAY items, and overall average.\n\nIMPORTANT: Do NOT combine children. Do NOT mix data between children. Exclude grades older than 7 days from today (March 12, 2025).\n\n=== DATA (today is Wednesday, March 12, 2025) ===\n\nThe data below is INTERLEAVED — items are not grouped by child. Sort them carefully.\n\n- Leo Kim, Bridgeport Elementary, Grade 4: Science 4 \"Weather Journal Week 8\" — scored 88/100 — March 10\n- Maya Kim, Westlake Academy, Grade 7: Math 7H \"Rational Numbers Quiz\" — scored 92/100 — March 11\n- Zoe Kim, Bridgeport Elementary, Grade 2: Spelling 2 \"Week 9 Test\" — scored 9/10 — March 11\n- Ava Kim, Westlake Academy, Grade 10: AP Biology \"Lab Report: Osmosis\" — scored 97/100 — March 11\n- Maya Kim: English 7 \"Poetry Analysis Essay\" — scored 78/100 — March 8\n- Zoe Kim: Math 2 \"Addition Timed Test\" — scored 24/30 — March 10\n- Leo Kim: Math 4 \"Multiplication Timed Test\" — scored 85/100 — March 11\n- Ava Kim: English 10H \"Hamlet Essay\" — scored 84/100 — March 9\n- Maya Kim: History 7 \"Chapter 12 Test\" — scored 88/100 — March 3 ← NOTE: this is 9 days ago\n- Leo Kim: Reading 4 \"Book Report: Charlotte's Web\" — scored 91/100 — March 7\n- Zoe Kim: Reading 2 \"Book Report: The Giving Tree\" — scored 18/25 — March 7\n- Ava Kim: AP Chemistry \"Unit 8 Exam\" — scored 71/100 — March 10\n- Maya Kim: Science 7 \"Lab Report: Density\" — scored 95/100 — March 10\n- Leo Kim: Art 4 \"Self-Portrait Project\" — scored 94/100 — March 4 ← NOTE: 8 days ago\n- Zoe Kim: Art 2 \"Collage Project\" — scored 19/20 — March 3 ← NOTE: 9 days ago\n- Ava Kim: US History \"DBQ Practice\" — scored 89/100 — March 7\n- Leo Kim: Math 4 \"Chapter 7 Test\" — scored 72/100 — March 5 ← NOTE: exactly 7 days ago, INCLUDE\n- Maya Kim: Math 7H \"Homework Set 14\" — due March 14 — In progress\n- Leo Kim: Math 4 \"Chapter 8 Review\" — due March 11 — Not started ← NOTE: this is OVERDUE (yesterday)\n- Zoe Kim: Math 2 \"Chapter 5 Worksheet\" — due March 12 — Not started ← NOTE: due TODAY\n- Ava Kim: AP Biology \"Genetics Problem Set\" — due March 12 — Not started ← NOTE: due TODAY\n- Maya Kim: English 7 \"Vocabulary Unit 9 Test\" — due March 17 — Not started\n- Leo Kim: Reading 4 \"Reading Log Week 9\" — due March 14 — In progress\n- Zoe Kim: Reading 2 \"Reading Log Week 9\" — due March 14 — In progress\n- Ava Kim: AP Chemistry \"Lab Report: Titration\" — due March 13 — In progress\n- Maya Kim: Science 7 \"Ecosystem Poster\" — due March 13 — Not started\n- Leo Kim: Science 4 \"Weather Journal Week 9\" — due March 17 — Not started\n- Ava Kim: English 10H \"Hamlet Act V Analysis\" — due March 18 — Not started\n\nGenerate the report now.",
+      "rubric": {
+        "3": "All four children in separate sections with correct headers. Date filtering: Maya's History (March 3) excluded, Leo's Art (March 4) excluded, Zoe's Art (March 3) excluded, Leo's Math Ch.7 (March 5) INCLUDED (exactly 7 days). Non-100 scores converted: Zoe's 24/30 = 80.0%, 18/25 = 72.0%, 9/10 = 90.0%. Flag column: Maya's English 78% LOW, Ava's AP Chem 71% LOW, Leo's Math Ch.7 72% LOW, Zoe's Book Report 72% LOW. Critical: Zoe's Addition 24/30 = 80.0% is NOT flagged LOW (rule says below 80%, not at-or-below). Urgency: Leo's Ch.8 Review OVERDUE (due March 11), Ava's Genetics TODAY (March 12), Zoe's Ch.5 Worksheet TODAY (March 12), Maya's Ecosystem Poster SOON (March 13), Ava's Titration SOON (March 13), Leo's Reading Log SOON (March 14), Zoe's Reading Log SOON (March 14), Maya's Homework Set 14 SOON (March 14). Averages: Leo (88+85+91+72)/4 = 84.0%, Maya (92+78+95)/3 = 88.3%, Ava (97+84+71+89)/4 = 85.3%, Zoe (80.0+72.0+90.0)/3 = 80.7%. No cross-contamination between Leo/Zoe despite same school and similar assignment names.",
+        "2": "Correct child separation, most data correct, but 1-2 errors: flags Zoe's 80.0% as LOW, miscalculates a non-100 percentage, gets one urgency wrong, or has a minor average error. No cross-contamination.",
+        "1": "Mixes data between children (especially Leo/Zoe at same school or their similar Book Report and Reading Log assignments), or fails to exclude old grades, or misses the 80% boundary case and multiple flags/urgency markers.",
+        "0": "Data assigned to wrong children, ignores filtering requirements, or omits one or more children entirely."
+      }
+    }
+  ]
+}
