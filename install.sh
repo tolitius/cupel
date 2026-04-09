@@ -218,15 +218,16 @@ main() {
 
   # verify
   local installed_version
-  installed_version=$("${CUPEL_VENV}/bin/cupel" --version 2>/dev/null || echo "unknown")
+  installed_version=$("${CUPEL_VENV}/bin/cupel" --version 2>/dev/null | sed 's/^cupel //' || echo "unknown")
 
   echo ""
   echo -e "  ${GREEN}✔${RESET} cupel ${BOLD}${installed_version}${RESET} installed"
   echo ""
-  echo -e "    ${DIM}get started:${RESET}  cupel init"
-  echo -e "    ${DIM}run evals:${RESET}    cupel run"
-  echo -e "    ${DIM}dashboard:${RESET}    cupel ui"
+  echo -e "    ${DIM}start here:${RESET}   cupel"
+  echo -e "    ${DIM}seed intel:${RESET}   cupel init"
+  echo -e "    ${DIM}cli bench:${RESET}    cupel run"
   echo -e "    ${DIM}uninstall:${RESET}    rm -rf ~/.cupel/venv ~/.cupel/bin"
+  echo -e "    ${DIM}upgrade:${RESET}      curl -fsSL https://cupel.run/install | bash"
   echo ""
 
   if [ -n "${MODIFIED_RC:-}" ]; then
