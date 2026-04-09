@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>cupel — separate precious LLMs from base</title>
+<meta name="description" content="discover LLMs punching above their weight. custom evals for any model, local or remote.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Ccircle cx='24' cy='24' r='22' fill='none' stroke='%232C2C2A' stroke-width='1.8'/%3E%3Ccircle cx='24' cy='24' r='7' fill='%23D4A030'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #1f1e1c;
+    --bg-panel: #262523;
+    --border: #3e3b38;
+    --border-subtle: #332f2d;
+    --text: #e4e0da;
+    --text-2: #a09a92;
+    --text-3: #6a6560;
+    --accent: #d46a3a;
+    --gold: #D4A030;
+    --gold-light: #E8C25C;
+    --font-head: 'Space Grotesk', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-head);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  a { color: var(--text-2); text-decoration: none; transition: color 0.15s; }
+  a:hover { color: var(--text); }
+
+  /* ── layout ── */
+
+  .page { max-width: 1120px; margin: 0 auto; padding: 0 40px; }
+
+  /* ── header ── */
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 40px 0 56px;
+  }
+
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo svg { width: 36px; height: 36px; }
+  .logo-text { font-size: 24px; font-weight: 600; color: var(--text); }
+
+  .nav { display: flex; gap: 20px; font-size: 14px; }
+
+  /* ── hero ── */
+
+  .hero { text-align: center; padding-bottom: 48px; }
+
+  .hero h1 {
+    font-size: 48px;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+    color: var(--text);
+  }
+
+  .hero h1 .gold { color: var(--gold); }
+
+  .hero .subtitle {
+    font-size: 18px;
+    color: var(--text-3);
+    margin-top: 16px;
+    letter-spacing: -0.01em;
+  }
+
+  /* ── install ── */
+
+  .install { max-width: 680px; margin: 0 auto 14px; }
+
+  .install-tabs { display: flex; }
+
+  .install-tab {
+    padding: 10px 24px;
+    font-family: var(--font-mono);
+    font-size: 15px;
+    font-weight: 500;
+    border: 1px solid var(--border);
+    border-bottom: none;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: var(--bg);
+    color: var(--text-3);
+  }
+
+  .install-tab:first-child { border-radius: 8px 0 0 0; }
+  .install-tab:last-child { border-radius: 0 8px 0 0; }
+
+  .install-tab.active {
+    background: var(--bg-panel);
+    color: var(--accent);
+  }
+
+  .install-tab:not(.active):hover {
+    color: var(--text-2);
+  }
+
+  .install-code {
+    padding: 20px 24px;
+    border: 1px solid var(--border);
+    border-radius: 0 8px 8px 8px;
+    background: var(--bg-panel);
+    font-family: var(--font-mono);
+    font-size: 16px;
+    color: #d0cac0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    letter-spacing: 0.01em;
+    min-height: 64px;
+  }
+
+  .copy-btn {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 5px 12px;
+    cursor: pointer;
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    transition: all 0.15s;
+    flex-shrink: 0;
+    margin-left: 16px;
+  }
+
+  .copy-btn:hover { color: var(--text-2); border-color: var(--text-3); }
+  .copy-btn.copied { color: var(--accent); border-color: var(--accent); }
+
+  .install-req {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-3);
+    text-align: center;
+    margin-top: 12px;
+  }
+
+  /* ── screenshots ── */
+
+  .screenshots { padding: 56px 0 48px; }
+
+  .hero-img {
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    cursor: pointer;
+  }
+
+  .hero-img img {
+    width: 100%;
+    display: block;
+  }
+
+  .thumbs {
+    display: flex;
+    gap: 12px;
+    margin-top: 12px;
+  }
+
+  .thumb {
+    flex: 1;
+    border-radius: 8px;
+    border: 1px solid var(--border-subtle);
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.15s;
+    opacity: 0.6;
+    transition: opacity 0.15s, border-color 0.15s;
+  }
+
+  .thumb:hover, .thumb.active {
+    opacity: 1;
+    border-color: var(--border);
+  }
+
+  .thumb img {
+    width: 100%;
+    display: block;
+  }
+
+  /* ── pillars ── */
+
+  .pillars {
+    display: flex;
+    gap: 40px;
+    padding: 56px 0;
+    border-top: 1px solid var(--border-subtle);
+    text-align: center;
+  }
+
+  .pillar { flex: 1; }
+
+  .pillar-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .pillar-desc {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text-3);
+    line-height: 1.6;
+  }
+
+  /* ── footer ── */
+
+  .footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 32px 0 48px;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .footer-logo { display: flex; align-items: center; gap: 8px; }
+  .footer-logo svg { width: 24px; height: 24px; }
+  .footer-logo span { font-size: 16px; font-weight: 500; color: var(--text-3); }
+  .footer-links { display: flex; gap: 20px; font-size: 13px; }
+
+  /* ── lightbox ── */
+
+  .lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: rgba(15, 14, 13, 0.92);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 32px;
+  }
+
+  .lightbox.open { display: flex; }
+
+  .lightbox img {
+    max-width: 100%;
+    max-height: 90vh;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+
+  /* ── responsive ── */
+
+  @media (max-width: 600px) {
+    .hero h1 { font-size: 32px; }
+    .hero .subtitle { font-size: 14px; }
+    .install-code { font-size: 12px; padding: 16px; overflow-x: auto; }
+    .pillars { flex-direction: column; gap: 28px; }
+    .thumbs { gap: 8px; }
+    .header { padding: 24px 0 40px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- header -->
+  <header class="header">
+    <div class="logo">
+      <svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="22" fill="none" stroke="#3e3b38" stroke-width="1.8"/><circle cx="9" cy="12" r="2" fill="#7A8899" opacity="0.5"/><circle cx="6" cy="28" r="1.8" fill="#7A8899" opacity="0.45"/><circle cx="12" cy="40" r="1.8" fill="#7A8899" opacity="0.48"/><circle cx="28" cy="43" r="1.6" fill="#7A8899" opacity="0.42"/><circle cx="40" cy="32" r="1.8" fill="#7A8899" opacity="0.48"/><circle cx="40" cy="14" r="1.6" fill="#7A8899" opacity="0.42"/><circle cx="28" cy="6" r="1.8" fill="#7A8899" opacity="0.45"/><circle cx="16" cy="7" r="1.6" fill="#7A8899" opacity="0.4"/><circle cx="24" cy="24" r="7" fill="#D4A030"/><circle cx="21.5" cy="21" r="2.5" fill="#E8C25C" opacity="0.45"/></svg>
+      <span class="logo-text">cupel</span>
+    </div>
+    <nav class="nav">
+      <a href="https://github.com/tolitius/cupel">github</a>
+      <a href="https://pypi.org/project/cupel/">pypi</a>
+    </nav>
+  </header>
+
+  <!-- hero -->
+  <section class="hero">
+    <h1>separate <span class="gold">precious</span> LLMs from base</h1>
+    <p class="subtitle">discover LLMs punching above their weight</p>
+  </section>
+
+  <!-- install -->
+  <div class="install">
+    <div class="install-tabs">
+      <button class="install-tab active" data-cmd="curl -fsSL https://cupel.run/install | bash">curl</button>
+      <button class="install-tab" data-cmd="pip install cupel">pip</button>
+    </div>
+    <div class="install-code">
+      <code id="cmd">curl -fsSL https://cupel.run/install | bash</code>
+      <button class="copy-btn" id="copy-btn">copy</button>
+    </div>
+  </div>
+  <p class="install-req">requires python 3.11+</p>
+
+  <!-- screenshots -->
+  <section class="screenshots">
+    <div class="hero-img" id="hero-img">
+      <img src="doc/category-fingerprint.png" alt="cupel category fingerprint — radar chart comparing LLM capabilities" id="main-img">
+    </div>
+    <div class="thumbs">
+      <div class="thumb active" data-src="doc/category-fingerprint.png" data-alt="category fingerprint">
+        <img src="doc/category-fingerprint.png" alt="category fingerprint">
+      </div>
+      <div class="thumb" data-src="doc/score-vs-speed.png" data-alt="score vs speed">
+        <img src="doc/score-vs-speed.png" alt="score vs speed">
+      </div>
+      <div class="thumb" data-src="doc/overall-accuracy.png" data-alt="overall accuracy">
+        <img src="doc/overall-accuracy.png" alt="overall accuracy">
+      </div>
+      <div class="thumb" data-src="doc/dashboard.png" data-alt="dashboard">
+        <img src="doc/dashboard.png" alt="dashboard">
+      </div>
+    </div>
+  </section>
+
+  <!-- pillars -->
+  <div class="pillars">
+    <div class="pillar">
+      <div class="pillar-title">model agnostic</div>
+      <div class="pillar-desc">any openai-compatible API</div>
+    </div>
+    <div class="pillar">
+      <div class="pillar-title">local &amp; remote</div>
+      <div class="pillar-desc">omlx · ollama · lm studio · sglang · ...<br>openrouter · openai · anthropic · ...</div>
+    </div>
+    <div class="pillar">
+      <div class="pillar-title">publish</div>
+      <div class="pillar-desc">optionally share and compare</div>
+    </div>
+  </div>
+
+  <!-- footer -->
+  <footer class="footer">
+    <div class="footer-logo">
+      <svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="22" fill="none" stroke="#3e3b38" stroke-width="1.8"/><circle cx="24" cy="24" r="7" fill="#D4A030"/><circle cx="21.5" cy="21" r="2.5" fill="#E8C25C" opacity="0.45"/></svg>
+      <span>cupel</span>
+    </div>
+    <nav class="footer-links">
+      <a href="https://github.com/tolitius/cupel">github</a>
+      <a href="https://pypi.org/project/cupel/">pypi</a>
+    </nav>
+  </footer>
+
+</div>
+
+<!-- lightbox -->
+<div class="lightbox" id="lightbox">
+  <img src="" alt="" id="lightbox-img">
+</div>
+
+<script>
+// tab switching
+document.querySelectorAll('.install-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.install-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('cmd').textContent = tab.dataset.cmd;
+  });
+});
+
+// copy
+const copyBtn = document.getElementById('copy-btn');
+copyBtn.addEventListener('click', () => {
+  navigator.clipboard.writeText(document.getElementById('cmd').textContent);
+  copyBtn.textContent = 'copied';
+  copyBtn.classList.add('copied');
+  setTimeout(() => { copyBtn.textContent = 'copy'; copyBtn.classList.remove('copied'); }, 1500);
+});
+
+// thumbnail switching
+const mainImg = document.getElementById('main-img');
+document.querySelectorAll('.thumb').forEach(thumb => {
+  thumb.addEventListener('click', () => {
+    document.querySelectorAll('.thumb').forEach(t => t.classList.remove('active'));
+    thumb.classList.add('active');
+    mainImg.src = thumb.dataset.src;
+    mainImg.alt = thumb.dataset.alt;
+  });
+});
+
+// lightbox
+const lightbox = document.getElementById('lightbox');
+const lightboxImg = document.getElementById('lightbox-img');
+
+document.getElementById('hero-img').addEventListener('click', () => {
+  lightboxImg.src = mainImg.src;
+  lightboxImg.alt = mainImg.alt;
+  lightbox.classList.add('open');
+});
+
+lightbox.addEventListener('click', () => {
+  lightbox.classList.remove('open');
+});
+</script>
+
+</body>
+</html>
