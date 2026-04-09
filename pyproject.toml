@@ -1,6 +1,6 @@
 [project]
 name = "cupel"
-version = "0.1.64"
+version = "0.1.65"
 description = "separates precious LLMs from base LLMs. works with any OpenAI/Anthropic compatible API"
 readme = "README.md"
 requires-python = ">=3.11"

@@ -596,6 +596,9 @@ async def get_leaderboard():
                             "tokens": r.get("completion_tokens", 0),
                             "category": r.get("category", ""),
                             "title": r.get("title", ""),
+                            "response": r.get("response", ""),
+                            "judge_reason": r.get("judge_reason", ""),
+                            "thinking": r.get("thinking", ""),
                         }
                         for r in results
                     ],
