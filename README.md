@@ -4,7 +4,7 @@
 
 score local and cloud LLMs with custom prompts and a configurable judge
 
-![PyPI - Version](https://img.shields.io/pypi/v/cupel?color=blue) ![Python - Version](https://img.shields.io/badge/python-3.11+-green) ![LICENSE](https://img.shields.io/badge/license-Apache%202.0-blue)
+![PyPI - Version](https://img.shields.io/pypi/v/cupel?color=blue&cb=${GITHUB_SHA}) ![Python - Version](https://img.shields.io/badge/python-3.11+-green) ![LICENSE](https://img.shields.io/badge/license-Apache%202.0-blue)
 
 <img src="doc/dashboard.png" alt="cupel leaderboard — models ranked by score" width="100%">
 
