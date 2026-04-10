@@ -43,13 +43,35 @@ def detect_hardware():
     else:
         # Linux — try nvidia-smi
         try:
-            gpu = subprocess.check_output(
+            gpu_output = subprocess.check_output(
                 ["nvidia-smi", "--query-gpu=name,memory.total", "--format=csv,noheader"],
                 stderr=subprocess.DEVNULL, timeout=5
             ).decode().strip()
-            if gpu:
-                info["name"] = gpu.split(",")[0].strip()
-                info["memory"] = gpu.split(",")[1].strip() if "," in gpu else "unknown"
+            if gpu_output:
+                from collections import Counter
+                gpu_names = []
+                total_mem_mib = 0
+                for line in gpu_output.splitlines():
+                    parts = line.split(",")
+                    gpu_names.append(parts[0].strip())
+                    if len(parts) > 1:
+                        mem_str = parts[1].strip()  # e.g. "24576 MiB"
+                        try:
+                            total_mem_mib += int(mem_str.split()[0])
+                        except (ValueError, IndexError):
+                            pass
+                counts = Counter(gpu_names)
+                if len(counts) == 1 and len(gpu_names) == 1:
+                    info["name"] = gpu_names[0]
+                else:
+                    info["name"] = ", ".join(
+                        f"{n}x {name}" if n > 1 else name
+                        for name, n in counts.items()
+                    )
+                if total_mem_mib:
+                    info["memory"] = f"{total_mem_mib} MiB"
+                if len(gpu_names) > 1:
+                    info["spec"] = f"{len(gpu_names)} GPUs"
         except Exception:
             pass
         # Memory
@@ -78,6 +100,7 @@ def discover_providers():
         {"port": 11434, "models_path": "/v1/models"},
         {"port": 1234,  "models_path": "/v1/models"},
         {"port": 30000, "models_path": "/v1/models"},
+        {"port": 8080,  "models_path": "/v1/models"},
     ]
 
     def _probe(host, port, models_path):

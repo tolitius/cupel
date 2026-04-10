@@ -153,6 +153,7 @@ cupel auto-discovers local servers on known ports:
 | 11434 | Ollama |
 | 1234 | LM Studio |
 | 30000 | SGLang |
+| 8080 | llama.cpp |
 
 ### API keys
 
