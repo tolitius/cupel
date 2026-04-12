@@ -82,6 +82,8 @@ function RunPage({ providers: initProviders }) {
   const [providers, setProviders] = useState(initProviders || []);
   const [selected, setSelected] = useState(() => JSON.parse(localStorage.getItem('cupel:bench-models') || '[]'));
   const [selectedCats, setSelectedCats] = useState(() => { const s = localStorage.getItem('cupel:bench-cats'); return s ? new Set(JSON.parse(s)) : new Set(['all']); });
+  const [pickedPromptIds, setPickedPromptIds] = useState(() => { const s = localStorage.getItem('cupel:bench-pick'); return s ? new Set(JSON.parse(s)) : new Set(); });
+  const [pickMode, setPickMode] = useState(false);
   const [judgeModel, setJudgeModel] = useState(() => localStorage.getItem('cupel:judge-model') || null);
   const [thinkingMode, setThinkingMode] = useState(() => localStorage.getItem('cupel:thinking-mode') || 'default');
   const [thinkingBudget, setThinkingBudget] = useState(() => parseInt(localStorage.getItem('cupel:thinking-budget')) || 4096);
@@ -233,6 +235,9 @@ function RunPage({ providers: initProviders }) {
       if (selectedCats.has('starter') && starterIds.has(p.id)) return true;
       return selectedCategories.has(p.category);
     });
+  }
+  if (pickMode) {
+    filteredPrompts = fullPrompts.filter(p => pickedPromptIds.has(p.id));
   }
   const promptCount = filteredPrompts.length;
 
@@ -627,7 +632,7 @@ function RunPage({ providers: initProviders }) {
       <!-- 2. IQ TASKS \u2014 grouped category chips -->
       <div style="padding:16px 20px;border-bottom:1px solid var(--border)">
         <div style="${sectionLabel}">IQ Tasks</div>
-        <div style="display:flex;flex-wrap:wrap">
+        <div style="display:flex;flex-wrap:wrap;${pickMode ? 'opacity:0.35;pointer-events:none' : ''}">
           <span style="${chipStyle(selectedCats.has('all'))}" onClick=${() => toggleCat('all')}>
             all (${fullPrompts.length})
           </span>
@@ -643,6 +648,42 @@ function RunPage({ providers: initProviders }) {
             </span>
           `)}
         </div>
+        ${!pickMode ? html`
+          <div style="margin-top:4px">
+            <span style="font-family:var(--font-data);font-size:13px;color:var(--accent);cursor:pointer" onClick=${() => setPickMode(true)}>
+              + pick specific tasks${pickedPromptIds.size > 0 ? ` (${pickedPromptIds.size})` : ''}
+            </span>
+          </div>
+        ` : html`
+          <div style="margin-top:8px;display:flex;align-items:center;gap:10px">
+            <span style="font-family:var(--font-label);font-size:13px;font-weight:600;color:var(--text-2)">picking specific tasks</span>
+            <span style="font-family:var(--font-data);font-size:13px;color:var(--accent);cursor:pointer" onClick=${() => setPickMode(false)}>
+              × back to categories
+            </span>
+          </div>
+        `}
+        ${pickMode ? html`
+          <div style="margin-top:10px">
+            <div style="max-height:260px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-md)">
+              ${fullPrompts.map(p => {
+                const checked = pickedPromptIds.has(p.id);
+                return html`
+                  <label style="display:flex;align-items:center;gap:8px;padding:6px 10px;cursor:pointer;font-family:var(--font-data);font-size:13px;color:var(--text);border-bottom:1px solid var(--border-subtle);background:${checked ? 'var(--accent-dim)' : 'transparent'}">
+                    <input class="checkbox" type="checkbox" checked=${checked}
+                      onChange=${() => {
+                        const next = new Set(pickedPromptIds);
+                        if (next.has(p.id)) next.delete(p.id); else next.add(p.id);
+                        setPickedPromptIds(next);
+                        localStorage.setItem('cupel:bench-pick', JSON.stringify([...next]));
+                      }} />
+                    <span style="font-size:12px;color:var(--text-3);min-width:24px">${p.id}</span>
+                    <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${CAT_COLORS[p.category] || 'var(--text-3)'};flex-shrink:0"></span>
+                    <span>${p.title || ''}</span>
+                  </label>`;
+              })}
+            </div>
+          </div>
+        ` : null}
       </div>
 
       <!-- 3. JUDGE -->
