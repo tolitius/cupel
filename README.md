@@ -13,9 +13,12 @@ score local and cloud LLMs with custom prompts and a configurable judge
 ## install
 
 ```bash
+curl -fsSL https://cupel.run/install | bash
+```
+or
+```
 pip install cupel
 ```
-
 the UI is bundled in the package
 
 ## quick start
