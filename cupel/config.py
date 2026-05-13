@@ -32,7 +32,7 @@ DEFAULTS = {
     "eval_set": "eval-sets/eval-set.json",
     "image_filename": "what-am-i-looking-at.png",
     "output_dir": "./eval-results",
-    "temperature": 0,
+    "temperature": None,
     "max_tokens": 16384,
     "generation_model": "",
 }
@@ -61,6 +61,7 @@ def resolve_api_key_for_port(port: int) -> str:
 def load_config(path: Path | None = None) -> tuple[dict, str | None]:
     candidates = [path] if path else [
         Path.cwd() / "config.yml",
+        Path.home() / ".cupel" / "config.yml",
         Path(__file__).parent.parent / "config.yml",
     ]
     for p in candidates:

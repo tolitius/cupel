@@ -480,7 +480,6 @@ def _cmd_init():
             "models": online_models[:5] if online_models else ["your-model-here"],
             "eval_set": "eval-sets/eval-set.json",
             "output_dir": "./eval-results",
-            "temperature": 0,
             "max_tokens": 16384,
             "thinking": None,
             "judge": {"model": "", "api_url": "", "api_key_env": ""},

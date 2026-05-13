@@ -104,7 +104,7 @@ def _eval_set_path() -> Path:
 
 def _read_config() -> dict:
     """Read config.yml, returning defaults if missing."""
-    cfg, _ = load_config(_config_path() if _config_path().exists() else None)
+    cfg, _ = load_config()
     return cfg
 
 def _read_eval_set() -> dict:
@@ -169,6 +169,7 @@ def _summarize_result(path: Path, data: dict) -> dict:
         "timestamp": data.get("timestamp", ""),
         "eval_set": data.get("eval_set", ""),
         "judge": data.get("judge", ""),
+        "notes": data.get("notes", ""),
         "num_prompts": len(results),
         "num_scored": len(scored),
         "total_score": total_score,
@@ -564,6 +565,7 @@ async def get_leaderboard():
             "judge_model": data.get("judge", ""),
             "self_judged": data.get("judge", "") == model,
             "timestamp": data.get("timestamp", ""),
+            "notes": data.get("notes", ""),
             "tok_per_sec": round(total_tokens / total_elapsed, 1) if total_elapsed > 0 else 0,
             "avg_time": round(total_elapsed / num_prompts, 1) if num_prompts > 0 else 0,
         })
@@ -814,6 +816,7 @@ async def _run_job(job: Job, body: dict):
         log.info("job %s started  type=run models=%s eval_set=%s", job.id, models, eval_set_key)
         prompt_ids = body.get("prompts")
         thinking = body.get("thinking")
+        run_notes = body.get("notes", "")
 
         # Load eval set (with fallback to packaged data)
         if eval_set_key == "starter":
@@ -902,6 +905,7 @@ async def _run_job(job: Job, body: dict):
                     "model": model, "api_url": model_urls.get(model, ""),
                     "thinking_budget": thinking_budget,
                     "timestamp": timestamp,
+                    "notes": run_notes,
                     "results": all_results[model],
                 }
                 with open(out, "w") as f:

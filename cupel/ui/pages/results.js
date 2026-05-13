@@ -177,7 +177,7 @@ function ResultsPage() {
                   <tr style="border-bottom:1px solid var(--border-subtle);cursor:pointer;background:${selectedFile === r.filename ? 'var(--bg-hover)' : ''};${r.muted ? 'opacity:0.45' : ''}"
                       key=${r.filename}
                       onClick=${() => openDetail(r.filename)}>
-                    <td style="padding:8px;font-family:var(--font-data);font-size:14px;color:var(--text);font-weight:600">${r.model}${r.muted ? html` <span style="font-size:12px;font-weight:400;color:var(--text-3)">muted</span>` : null}</td>
+                    <td style="padding:8px;font-family:var(--font-data);font-size:14px;color:var(--text);font-weight:600">${r.model}${r.muted ? html` <span style="font-size:12px;font-weight:400;color:var(--text-3)">muted</span>` : null}${r.notes ? html`<div style="font-size:12px;font-weight:400;color:var(--text-3);font-style:italic">${r.notes}</div>` : null}</td>
                     <td style="padding:8px;font-family:var(--font-data);font-size:14px;color:var(--text-2)">${r.timestamp || ''}</td>
                     <td style="padding:8px;font-family:var(--font-data);font-size:15px;color:var(--text);text-align:right;font-weight:700">${r.total_score != null ? `${r.total_score}/${r.max_score}` : '\u2014'}</td>
                     <td style="padding:8px;text-align:center;font-family:var(--font-data);font-size:14px;color:${r.num_scored === r.num_prompts ? 'var(--accent)' : 'var(--text-3)'}">${r.num_scored}/${r.num_prompts}</td>

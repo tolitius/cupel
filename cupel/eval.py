@@ -54,7 +54,7 @@ def build_vision_content(prompt_text: str, image_b64: str) -> list[dict]:
 
 def call_llm(
     api_url: str, api_key: str, model: str, prompt: str,
-    temperature: float = 0, max_tokens: int = 16384,
+    temperature: float | None = None, max_tokens: int = 16384,
     thinking_budget: int | None = None, image_b64: str | None = None,
 ) -> dict:
     content = build_vision_content(prompt, image_b64) if image_b64 else prompt
@@ -64,7 +64,7 @@ def call_llm(
 
 def call_llm_multi(
     api_url: str, api_key: str, model: str, messages: list[dict],
-    temperature: float = 0, max_tokens: int = 16384,
+    temperature: float | None = None, max_tokens: int = 16384,
     thinking_budget: int | None = None,
 ) -> dict:
     return _call_llm_raw(api_url, api_key, model, messages, temperature, max_tokens, thinking_budget)
@@ -72,7 +72,7 @@ def call_llm_multi(
 
 def _call_llm_raw(
     api_url: str, api_key: str, model: str, messages: list[dict],
-    temperature: float = 0, max_tokens: int = 16384,
+    temperature: float | None = None, max_tokens: int = 16384,
     thinking_budget: int | None = None,
 ) -> dict:
 
@@ -82,9 +82,10 @@ def _call_llm_raw(
     body = {
         "model": model,
         "messages": messages,
-        "temperature": temperature,
         "max_tokens": max_tokens,
     }
+    if temperature is not None:
+        body["temperature"] = temperature
 
     if thinking_budget is not None:
         body["thinking_budget"] = thinking_budget  # oMLX
@@ -337,7 +338,7 @@ def run_prompt(api_url, api_key, model, p, cfg, image_b64):
         use_image = image_b64 if p.get("category") == "multimodal" else None
         resp = call_llm(
             api_url, api_key, model, p["prompt"],
-            temperature=cfg.get("temperature", 0),
+            temperature=cfg.get("temperature"),
             max_tokens=cfg.get("max_tokens", 16384),
             thinking_budget=cfg.get("_thinking_budget"),
             image_b64=use_image,
@@ -380,7 +381,7 @@ def _call_and_record(api_url, api_key, model, history, cfg, all_responses,
     """Call LLM with current history, record response, update history in place."""
     resp = call_llm_multi(
         api_url, api_key, model, list(history),
-        temperature=cfg.get("temperature", 0),
+        temperature=cfg.get("temperature"),
         max_tokens=cfg.get("max_tokens", 16384),
         thinking_budget=cfg.get("_thinking_budget"),
     )

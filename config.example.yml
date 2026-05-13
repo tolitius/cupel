@@ -13,7 +13,7 @@ output_dir: ./eval-results
 
 # ── inference defaults ──
 
-temperature: 0
+# temperature: 0         # omit to use model/engine defaults
 max_tokens: 16384
 
 # thinking: controls <think> reasoning mode

@@ -376,10 +376,11 @@ function SettingsPage({ params, refreshProviders }) {
 
         <div style="display: flex; gap: 16px; margin-bottom: 16px">
           <div style="flex: 1">
-            <label style="${inputLbl}">Temperature</label>
+            <label style="${inputLbl}">Temperature <span style="font-weight:400;color:var(--text-3);font-size:12px">(empty = engine default)</span></label>
             <input class="input" type="number" step="0.1" min="0" max="2"
-              value=${config.temperature ?? 0}
-              onInput=${e => { setConfig({...config, temperature: parseFloat(e.target.value)}); setSaved(false); }} />
+              placeholder="engine default"
+              value=${config.temperature != null ? config.temperature : ''}
+              onInput=${e => { const v = e.target.value; setConfig({...config, temperature: v === '' ? null : parseFloat(v)}); setSaved(false); }} />
           </div>
           <div style="flex: 1">
             <label style="${inputLbl}">Max Output Tokens</label>

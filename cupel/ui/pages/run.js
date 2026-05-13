@@ -93,6 +93,9 @@ function RunPage({ providers: initProviders }) {
   const [pickedPromptIds, setPickedPromptIds] = useState(() => { const s = localStorage.getItem('cupel:bench-pick'); return s ? new Set(JSON.parse(s)) : new Set(); });
   const [pickMode, setPickMode] = useState(() => localStorage.getItem('cupel:bench-pick-mode') === 'true');
   const [judgeModel, setJudgeModel] = useState(() => localStorage.getItem('cupel:judge-model') || null);
+  const [configJudge, setConfigJudge] = useState('');
+  const [runNotes, setRunNotes] = useState('');
+  const [judgeWarning, setJudgeWarning] = useState(false);
   const [thinkingMode, setThinkingMode] = useState(() => localStorage.getItem('cupel:thinking-mode') || 'default');
   const [thinkingBudget, setThinkingBudget] = useState(() => parseInt(localStorage.getItem('cupel:thinking-budget')) || 4096);
   const [jobId, setJobId] = useState(null);
@@ -126,9 +129,12 @@ function RunPage({ providers: initProviders }) {
     ]).then(([full, starter, cfg]) => {
       setFullPrompts(full.prompts || []);
       setStarterPrompts(starter.prompts || []);
+      // Track config judge for warning
+      const cfgJudge = (cfg.judge && cfg.judge.model) || '';
+      setConfigJudge(cfgJudge);
       // Pre-populate judge from config only if user hasn't picked one
-      if (!localStorage.getItem('cupel:judge-model') && cfg.judge && cfg.judge.model) {
-        setJudgeModel(cfg.judge.model);
+      if (!localStorage.getItem('cupel:judge-model') && cfgJudge) {
+        setJudgeModel(cfgJudge);
       }
     });
   }, []);
@@ -318,6 +324,13 @@ function RunPage({ providers: initProviders }) {
   const startRun = useCallback(() => {
     const models = selected.map(s => s.model);
     if (!models.length || !filteredPrompts.length) return;
+    // Check if judge is configured
+    if (!judgeModel && !configJudge) {
+      setJudgeWarning(true);
+      document.getElementById('cupel-judge-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    setJudgeWarning(false);
     const model_urls = {};
     selected.forEach(s => { model_urls[s.model] = s.url; });
     const promptIds = filteredPrompts.map(p => p.id);
@@ -327,12 +340,12 @@ function RunPage({ providers: initProviders }) {
     // Note: selected, selectedCats, judgeModel are intentionally NOT cleared
     fetch('/api/jobs', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type: 'run', models, model_urls, eval_set: 'full', prompts: promptIds, thinking: thinkingValue, judge_model: judgeModel })
+      body: JSON.stringify({ type: 'run', models, model_urls, eval_set: 'full', prompts: promptIds, thinking: thinkingValue, judge_model: judgeModel, notes: runNotes })
     })
     .then(r => r.json())
     .then(data => { setJobId(data.id); connectSSE(data.id, handleEvent); })
     .catch((err) => { console.error('[cupel] failed to start job:', err); setRunning(false); setComplete({ error: 'Failed to start job' }); });
-  }, [selected, selectedCats, judgeModel, filteredPrompts, thinkingMode, thinkingBudget]);
+  }, [selected, selectedCats, judgeModel, configJudge, filteredPrompts, thinkingMode, thinkingBudget, runNotes]);
 
   // Derive prompt list: explicit for new runs, derived from grid for reconnections
   const activePrompts = benchPrompts.length > 0 ? benchPrompts : (() => {
@@ -710,19 +723,23 @@ function RunPage({ providers: initProviders }) {
       </div>
 
       <!-- 3. JUDGE -->
-      <div style="padding:16px 20px;border-bottom:1px solid var(--border)">
+      <div id="cupel-judge-section" style="padding:16px 20px;border-bottom:1px solid var(--border)">
         <div style="${sectionLabel}">Judge</div>
-        <select class="input" style="max-width:400px" value=${judgeModel || ''} onChange=${(e) => { const v = e.target.value || null; setJudgeModel(v); if (v) localStorage.setItem('cupel:judge-model', v); else localStorage.removeItem('cupel:judge-model'); }}>
-          <option value="">Self-judge (same model)</option>
+        <select class="input" style="max-width:400px" value=${judgeModel || ''} onChange=${(e) => { const v = e.target.value || null; setJudgeModel(v); setJudgeWarning(false); if (v) localStorage.setItem('cupel:judge-model', v); else localStorage.removeItem('cupel:judge-model'); }}>
+          <option value="">Select a judge model</option>
           ${availableProviders.map(p => html`
             <optgroup label="${p.name || p.url}">
               ${(p.models || []).map(m => html`<option value=${m}>${m}</option>`)}
             </optgroup>
           `)}
         </select>
-        ${judgeModel === null ? html`
+        ${judgeWarning ? html`
+          <div style="margin-top:8px;max-width:400px;padding:8px 12px;background:var(--bad-bg, rgba(220,60,60,0.1));border:1px solid var(--bad, #c45050);border-radius:6px;color:var(--bad, #c45050);font-family:var(--font-label);font-size:13px">
+            Select a judge model above to score responses
+          </div>
+        ` : judgeModel === null && !configJudge ? html`
           <div class="self-judge-warning" style="margin-top:8px;max-width:400px">
-            Self-judging is unreliable \u2014 configure a stronger model for accurate scores
+            No judge configured \u2014 select a model above or set one in Settings
           </div>
         ` : null}
       </div>
@@ -759,7 +776,19 @@ function RunPage({ providers: initProviders }) {
         </div>
       </div>
 
-      <!-- 5. CONNECTIONS -->
+      <!-- 5. NOTES -->
+      <div style="padding:16px 20px;border-bottom:1px solid var(--border)">
+        <div style="${sectionLabel}">Notes</div>
+        <input class="input" type="text" placeholder="e.g. q4 quant, 2x RTX 4090, custom system prompt..."
+          style="max-width:500px"
+          value=${runNotes}
+          onInput=${(e) => setRunNotes(e.target.value)} />
+        <div style="margin-top:4px;font-family:var(--font-label);font-size:12px;color:var(--text-3)">
+          shown in results to help distinguish experiments
+        </div>
+      </div>
+
+      <!-- 6. CONNECTIONS -->
       <div style="padding:16px 20px;border-bottom:1px solid var(--border)">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
           <div style="${sectionLabel};margin-bottom:0">Connections</div>

@@ -685,7 +685,7 @@ function Dashboard({ providers, refreshProviders }) {
         <td class="td-rank">${i + 1}</td>
         <td style="white-space:nowrap">
           <div class="td-model-name">${entry.model}${isExample ? html` <span class="ex-tag">example</span>` : null}</div>
-          <div class="td-model-meta">${entry.judge_model ? html`<span style="${entry.self_judged ? 'color:var(--warn)' : ''}">${entry.self_judged ? 'self-judged' : entry.judge_model}</span>` : null}${entry.judge_model && hwStr ? ' \u00b7 ' : ''}${hwStr}</div>
+          <div class="td-model-meta">${entry.judge_model ? html`<span style="${entry.self_judged ? 'color:var(--warn)' : ''}">${entry.self_judged ? 'self-judged' : entry.judge_model}</span>` : null}${entry.judge_model && hwStr ? ' \u00b7 ' : ''}${hwStr}${entry.notes ? html`${(entry.judge_model || hwStr) ? ' \u00b7 ' : ''}<span style="color:var(--text-3);font-style:italic">${entry.notes}</span>` : null}</div>
         </td>
         <td class="td-bar">
           <div class="bar-track">
