@@ -11,6 +11,7 @@ from pathlib import Path
 from datetime import datetime
 
 from cupel import __version__
+from cupel.config import resolve_path
 
 log = logging.getLogger("cupel")
 
@@ -24,12 +25,10 @@ def find_image(image_filename: str, image_dir: Path | None) -> str | None:
     if image_dir:
         candidates.append(image_dir / image_filename)
     candidates.extend([
+        Path.home() / ".cupel" / "eval-sets" / image_filename,
+        Path(__file__).parent / "data" / image_filename,
         Path.cwd() / image_filename,
         Path.cwd() / "eval-sets" / image_filename,
-        Path(__file__).parent / "data" / image_filename,
-        Path(__file__).parent.parent / image_filename,
-        Path.home() / image_filename,
-        Path.home() / "eval-images" / image_filename,
     ])
     for path in candidates:
         if path.exists():
@@ -476,7 +475,7 @@ def run_eval(models, prompts, cfg, api_url, api_key, image_b64=None, on_progress
     Returns:
         (all_results, saved_files) where all_results = {model: [result_dicts]}
     """
-    output_dir = Path(cfg.get("output_dir", "./eval-results"))
+    output_dir = resolve_path(cfg.get("output_dir", "./eval-results"))
     output_dir.mkdir(parents=True, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     thinking_budget = cfg.get("_thinking_budget")

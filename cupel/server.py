@@ -17,7 +17,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from cupel import __version__
 from cupel.config import (
     load_config, load_dotenv, reload_dotenv, get_api_config, get_judge_config,
-    get_providers_config, resolve_api_key_for_port,
+    get_providers_config, resolve_api_key_for_port, resolve_path,
 )
 from cupel.eval import (
     run_eval, judge_results, score_one, _prompt_text_for_judge, run_prompt,
@@ -53,7 +53,7 @@ logging.getLogger("uvicorn.access").addFilter(_ThermalFilter())
 
 BASE_DIR = Path(__file__).parent.parent   # repo root
 PKG_DIR = Path(__file__).parent           # package dir (cupel/)
-RESULTS_DIR = Path.cwd() / "eval-results"
+RESULTS_DIR = Path.home() / ".cupel" / "eval-results"
 DATA_DIR = PKG_DIR / "data"
 UI_DIR = PKG_DIR / "ui"
 TAGS_FILE = RESULTS_DIR / ".tags.json"
@@ -97,10 +97,10 @@ jobs: dict[str, Job] = {}
 # ──────────────────────────────────────────────
 
 def _config_path() -> Path:
-    return Path.cwd() / "config.yml"
+    return Path.home() / ".cupel" / "config.yml"
 
 def _eval_set_path() -> Path:
-    return Path.cwd() / "eval-sets" / "eval-set.json"
+    return Path.home() / ".cupel" / "eval-sets" / "eval-set.json"
 
 def _read_config() -> dict:
     """Read config.yml, returning defaults if missing."""
@@ -230,10 +230,10 @@ async def init_project(request: Request):
             "eval_set": "eval-sets/eval-set.json",
             "image_filename": "what-am-i-looking-at.png",
             "output_dir": "./eval-results",
-            "temperature": 0,
             "max_tokens": 16384,
             "thinking": None,
         }
+        cfg_path.parent.mkdir(parents=True, exist_ok=True)
         with open(cfg_path, "w") as f:
             yaml.dump(default_cfg, f, default_flow_style=False, sort_keys=False)
 
@@ -425,6 +425,7 @@ async def get_config():
 async def put_config(request: Request):
     body = await request.json()
     cfg_path = _config_path()
+    cfg_path.parent.mkdir(parents=True, exist_ok=True)
     with open(cfg_path, "w") as f:
         yaml.dump(body, f, default_flow_style=False, sort_keys=False)
     return {"status": "ok"}
@@ -858,7 +859,7 @@ async def _run_job(job: Job, body: dict):
         )
 
         # ── Setup for saving + judging ──
-        output_dir = Path(cfg.get("output_dir", "./eval-results"))
+        output_dir = resolve_path(cfg.get("output_dir", "./eval-results"))
         output_dir.mkdir(parents=True, exist_ok=True)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         thinking_budget = cfg.get("_thinking_budget")

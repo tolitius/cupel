@@ -15,6 +15,7 @@ def cmd_run(args):
     """Collect responses from models. No judging."""
     from cupel.config import (
         load_config, load_dotenv, get_api_config, parse_prompt_ids,
+        resolve_path,
     )
     from cupel.eval import find_image, run_prompt
     from cupel.display import HAS_RICH, build_table
@@ -37,17 +38,15 @@ def cmd_run(args):
         print("\n  ✘ No models configured. Add them to config.yml or use --models\n")
         sys.exit(1)
 
-    eval_set_path = Path(cfg["eval_set"])
-    if not eval_set_path.exists() and config_path:
-        alt = Path(config_path).parent / eval_set_path
-        if alt.exists():
-            eval_set_path = alt
+    eval_set_path = resolve_path(cfg["eval_set"], config_path)
     if not eval_set_path.exists():
-        print(f"\n  ✘ Eval set not found: {cfg['eval_set']}\n")
+        print(f"\n  ✘ Eval set not found: {eval_set_path}\n")
         sys.exit(1)
 
     with open(eval_set_path) as f:
         eval_set = json.load(f)
+
+    output_dir = resolve_path(cfg["output_dir"], config_path)
 
     print()
     if config_path:
@@ -60,12 +59,10 @@ def cmd_run(args):
     print(f"  models:    {', '.join(models)}")
     tb = cfg.get("_thinking_budget")
     print(f"  thinking:  {tb if tb is not None else 'model default'}")
-    print(f"  output:    {cfg['output_dir']}")
+    print(f"  output:    {output_dir}")
 
     image_b64 = find_image(cfg["image_filename"], args.image_dir)
     print()
-
-    output_dir = Path(cfg["output_dir"])
     output_dir.mkdir(parents=True, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     thinking_budget = cfg.get("_thinking_budget")
@@ -148,7 +145,7 @@ def cmd_run(args):
 def cmd_judge(args):
     """Score existing result JSONs with a judge model."""
     from cupel.config import (
-        load_config, load_dotenv, get_judge_config,
+        load_config, load_dotenv, get_judge_config, resolve_path,
     )
     from cupel.eval import score_one, _prompt_text_for_judge
     from cupel.display import HAS_RICH, build_table
@@ -194,13 +191,9 @@ def cmd_judge(args):
         sys.exit(1)
 
     # Load eval set for rubrics
-    eval_set_path = Path(cfg["eval_set"])
-    if not eval_set_path.exists() and config_path:
-        alt = Path(config_path).parent / eval_set_path
-        if alt.exists():
-            eval_set_path = alt
+    eval_set_path = resolve_path(cfg["eval_set"], config_path)
     if not eval_set_path.exists():
-        print(f"\n  ✘ Eval set not found: {cfg['eval_set']} (needed for rubrics)\n")
+        print(f"\n  ✘ Eval set not found: {eval_set_path} (needed for rubrics)\n")
         sys.exit(1)
 
     with open(eval_set_path) as f:
@@ -327,7 +320,7 @@ def cmd_judge(args):
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     judge_safe = judge_model.replace("/", "_").replace(" ", "_")[:20]
     models_safe = "+".join(m.replace("/", "_").replace(" ", "_")[:20] for m in models)
-    output_dir = Path(cfg["output_dir"])
+    output_dir = resolve_path(cfg["output_dir"], config_path)
     output_dir.mkdir(parents=True, exist_ok=True)
     summary = output_dir / f"scoring_{models_safe}_by_{judge_safe}_{timestamp}.md"
 
@@ -459,13 +452,14 @@ examples:
 
 
 def _cmd_init():
-    """Create config.yml + eval-set.json in current directory."""
+    """Create config.yml + eval-set.json in ~/.cupel/."""
     import shutil
     import yaml
     from cupel.discovery import detect_hardware, discover_providers
 
-    cfg_path = Path.cwd() / "config.yml"
-    es_path = Path.cwd() / "eval-sets" / "eval-set.json"
+    cupel_home = Path.home() / ".cupel"
+    cfg_path = cupel_home / "config.yml"
+    es_path = cupel_home / "eval-sets" / "eval-set.json"
 
     if cfg_path.exists():
         print(f"  config.yml already exists, skipping")
@@ -484,6 +478,7 @@ def _cmd_init():
             "thinking": None,
             "judge": {"model": "", "api_url": "", "api_key_env": ""},
         }
+        cfg_path.parent.mkdir(parents=True, exist_ok=True)
         with open(cfg_path, "w") as f:
             yaml.dump(cfg, f, default_flow_style=False, sort_keys=False)
         print(f"  created: {cfg_path}")

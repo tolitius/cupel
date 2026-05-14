@@ -224,6 +224,7 @@ main() {
   echo -e "  ${GREEN}✔${RESET} cupel ${BOLD}${installed_version}${RESET} installed"
   echo ""
   echo -e "    ${DIM}start here:${RESET}   cupel"
+  echo -e "    ${DIM}home:${RESET}         ~/.cupel  (config, eval sets, results)"
   echo -e "    ${DIM}seed intel:${RESET}   cupel init"
   echo -e "    ${DIM}cli bench:${RESET}    cupel run"
   echo -e "    ${DIM}uninstall:${RESET}    rm -rf ~/.cupel/venv ~/.cupel/bin"

@@ -60,9 +60,7 @@ def resolve_api_key_for_port(port: int) -> str:
 
 def load_config(path: Path | None = None) -> tuple[dict, str | None]:
     candidates = [path] if path else [
-        Path.cwd() / "config.yml",
         Path.home() / ".cupel" / "config.yml",
-        Path(__file__).parent.parent / "config.yml",
     ]
     for p in candidates:
         if p and p.exists():
@@ -72,12 +70,20 @@ def load_config(path: Path | None = None) -> tuple[dict, str | None]:
     return dict(DEFAULTS), None
 
 
+def resolve_path(cfg_val: str, config_path: str | None = None) -> Path:
+    """Resolve a config path. Absolute paths pass through; relative ones
+    are anchored to the config file's parent directory."""
+    p = Path(cfg_val)
+    if p.is_absolute():
+        return p
+    if config_path:
+        return Path(config_path).parent / p
+    return Path.home() / ".cupel" / p
+
+
 def load_dotenv(path: Path = None) -> str | None:
     candidates = [path] if path else [
-        Path.cwd() / ".env",
         Path.home() / ".cupel" / ".env",
-        Path(__file__).parent.parent / ".env",
-        Path.home() / ".env",
     ]
     for p in candidates:
         if p and p.exists():
@@ -98,10 +104,7 @@ def load_dotenv(path: Path = None) -> str | None:
 def reload_dotenv() -> str | None:
     """Re-read .env files, updating keys even if already set."""
     candidates = [
-        Path.cwd() / ".env",
         Path.home() / ".cupel" / ".env",
-        Path(__file__).parent.parent / ".env",
-        Path.home() / ".env",
     ]
     loaded = None
     for p in candidates:
