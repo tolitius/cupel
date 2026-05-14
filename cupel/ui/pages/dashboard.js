@@ -333,6 +333,10 @@ function Dashboard({ providers, refreshProviders }) {
     const saved = localStorage.getItem('cupel:dash-text-only');
     return saved !== null ? JSON.parse(saved) : false;
   });
+  const [showNotes, setShowNotes] = useState(() => {
+    const saved = localStorage.getItem('cupel:dash-show-notes');
+    return saved !== null ? JSON.parse(saved) : false;
+  });
   const [state, setState] = useState(null);
   const [sortCol, setSortCol] = useState('score');
   const [sortDir, setSortDir] = useState('desc');
@@ -571,7 +575,7 @@ function Dashboard({ providers, refreshProviders }) {
       ${chartTabs}
       <div class="stat-cell" style="margin-left:${entries.length > 0 ? '0' : 'auto'};border-right:none;display:flex;flex-direction:column;gap:4px;align-items:flex-start">
         <div style="display:flex;gap:10px">
-          <label class="show-ex">
+          <label class="show-ex" style="min-width:65px">
             <input type="checkbox" checked=${localOnly}
               onChange=${(e) => { setLocalOnly(e.target.checked); localStorage.setItem('cupel:dash-local-only', JSON.stringify(e.target.checked)); }} />
             local
@@ -582,11 +586,18 @@ function Dashboard({ providers, refreshProviders }) {
             text
           </label>
         </div>
-        <label class="show-ex">
-          <input type="checkbox" checked=${showExamples}
-            onChange=${(e) => { setShowExamples(e.target.checked); localStorage.setItem('cupel:dash-show-examples', JSON.stringify(e.target.checked)); }} />
-          show examples
-        </label>
+        <div style="display:flex;gap:10px">
+          <label class="show-ex" style="min-width:65px">
+            <input type="checkbox" checked=${showExamples}
+              onChange=${(e) => { setShowExamples(e.target.checked); localStorage.setItem('cupel:dash-show-examples', JSON.stringify(e.target.checked)); }} />
+            sample
+          </label>
+          <label class="show-ex">
+            <input type="checkbox" checked=${showNotes}
+              onChange=${(e) => { setShowNotes(e.target.checked); localStorage.setItem('cupel:dash-show-notes', JSON.stringify(e.target.checked)); }} />
+            notes
+          </label>
+        </div>
       </div>
     </div>`;
 
@@ -625,7 +636,7 @@ function Dashboard({ providers, refreshProviders }) {
     return () => {
       if (currentChart) { currentChart.destroy(); currentChart = null; }
     };
-  }, [chartTab, chartLoaded, entries.length, showExamples, localOnly, textOnly, radarModels, sortCol, sortDir]);
+  }, [chartTab, chartLoaded, entries.length, showExamples, localOnly, textOnly, showNotes, radarModels, sortCol, sortDir]);
 
   const barHeight = chartTab === 'bar' ? Math.max(320, entries.length * 28 + 40) : 320;
 
@@ -685,7 +696,8 @@ function Dashboard({ providers, refreshProviders }) {
         <td class="td-rank">${i + 1}</td>
         <td style="white-space:nowrap">
           <div class="td-model-name">${entry.model}${isExample ? html` <span class="ex-tag">example</span>` : null}</div>
-          <div class="td-model-meta">${entry.judge_model ? html`<span style="${entry.self_judged ? 'color:var(--warn)' : ''}">${entry.self_judged ? 'self-judged' : entry.judge_model}</span>` : null}${entry.judge_model && hwStr ? ' \u00b7 ' : ''}${hwStr}${entry.notes ? html`${(entry.judge_model || hwStr) ? ' \u00b7 ' : ''}<span style="color:var(--text-3);font-style:italic">${entry.notes}</span>` : null}</div>
+          <div class="td-model-meta">${entry.judge_model ? html`<span style="${entry.self_judged ? 'color:var(--warn)' : ''}">${entry.self_judged ? 'self-judged' : entry.judge_model}</span>` : null}${entry.judge_model && hwStr ? ' \u00b7 ' : ''}${hwStr}</div>
+          ${showNotes && entry.notes ? html`<div style="font-family:var(--font-data);font-size:11px;color:#ffb18d;font-style:italic">${entry.notes}</div>` : null}
         </td>
         <td class="td-bar">
           <div class="bar-track">
