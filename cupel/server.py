@@ -92,6 +92,22 @@ class Job:
 
 jobs: dict[str, Job] = {}
 
+# background-polled thermal state — avoids blocking requests during swift cold compile
+_thermal_cache = {"state": None}
+
+async def _thermal_loop():
+    """poll thermal state every 30s in the background."""
+    while True:
+        try:
+            _thermal_cache["state"] = await asyncio.to_thread(detect_thermal)
+        except Exception:
+            pass
+        await asyncio.sleep(30)
+
+@app.on_event("startup")
+async def _start_thermal_poller():
+    asyncio.create_task(_thermal_loop())
+
 # ──────────────────────────────────────────────
 # Helpers
 # ──────────────────────────────────────────────
@@ -405,12 +421,7 @@ async def get_hardware():
 
 @app.get("/api/thermal")
 async def get_thermal():
-    try:
-        state = await asyncio.to_thread(detect_thermal)
-        return {"state": state}
-    except Exception as e:
-        log.error("thermal detection failed: %s", e)
-        return {"state": None}
+    return _thermal_cache
 
 # ──────────────────────────────────────────────
 # Routes: config

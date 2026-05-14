@@ -96,12 +96,17 @@ def detect_thermal():
     if platform.system() != "Darwin":
         return None
     try:
+        # timeout=60: swift cold-compiles Foundation module cache (~20s) on first run
         out = subprocess.check_output(
             ["swift", "-e", "import Foundation; print(ProcessInfo.processInfo.thermalState.rawValue)"],
             stderr=subprocess.DEVNULL,
-            timeout=5
+            timeout=60
         ).decode().strip()
         return int(out)
+    except subprocess.TimeoutExpired:
+        # cold compile can exceed even 60s on slow machines — not an error
+        log.debug("thermal detection timed out (swift module cache cold compile)")
+        return None
     except Exception as e:
         log.warning("thermal detection failed: %s", e)
         return None
