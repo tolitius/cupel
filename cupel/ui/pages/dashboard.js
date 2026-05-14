@@ -826,7 +826,7 @@ function Dashboard({ providers, refreshProviders }) {
                   </div>
                 ` : null}
                 ${r.judge_reason ? html`<div class="detail-reason" style="margin-bottom:6px">${r.judge_reason}</div>` : null}
-                ${r.elapsed_seconds ? html`<div class="detail-metrics"><span>\u23f1 <b>${r.elapsed_seconds}s</b></span><span>\u26a1 <b>${r.completion_tokens || 0}</b> tok</span></div>` : null}
+                ${r.elapsed_seconds ? html`<div class="detail-metrics"><span>\u23f1 <b>${r.elapsed_seconds}s</b></span><span>\u26a1 <b>${r.completion_tokens || 0}</b> tok</span>${r.thinking_tokens > 0 ? html`<span>\uD83E\uDDE0 <b>${r.thinking_tokens}</b> think tok</span>` : null}</div>` : null}
                 ${r.response ? html`
                   <details style="margin-top:6px">
                     <summary style="font-family:var(--font-data);font-size:13px;color:var(--text-3);cursor:pointer">Response</summary>

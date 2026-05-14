@@ -122,7 +122,7 @@ function ResultsPage() {
                       <span style="font-family:var(--font-data);font-size:14px;font-weight:700;padding:2px 8px;background:${scoreBg};color:${scoreColor};border-radius:var(--radius-sm)">${score != null ? `${score}/3` : '\u2014'}</span>
                     </div>
                     ${p.judge_reason ? html`<div style="font-family:var(--font-label);font-size:14px;color:var(--text-2);margin-bottom:4px">${p.judge_reason}</div>` : null}
-                    ${p.elapsed_seconds ? html`<div style="font-family:var(--font-data);font-size:13px;color:var(--text-3);margin-bottom:4px">\u23f1 ${p.elapsed_seconds}s \u00b7 ${p.completion_tokens || 0} tok</div>` : null}
+                    ${p.elapsed_seconds ? html`<div style="font-family:var(--font-data);font-size:13px;color:var(--text-3);margin-bottom:4px">\u23f1 ${p.elapsed_seconds}s \u00b7 ${p.completion_tokens || 0} tok${p.thinking_tokens > 0 ? ` \u00b7 \uD83E\uDDE0 ${p.thinking_tokens} think tok` : ''}</div>` : null}
                     ${p.response ? html`
                       <details style="margin-top:4px">
                         <summary style="font-family:var(--font-data);font-size:13px;color:var(--text-3);cursor:pointer">Response</summary>

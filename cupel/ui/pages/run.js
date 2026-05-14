@@ -851,7 +851,7 @@ function RunPage({ providers: initProviders }) {
             ` : null}
             ${result.judge_reason ? html`<div class="detail-reason" style="margin-bottom:6px">${result.judge_reason}</div>` : null}
             ${cell.status === 'judging' ? html`<div style="color:var(--accent);font-family:var(--font-data);font-size:13px;margin-bottom:6px">Scoring in progress\u2026</div>` : null}
-            ${result.elapsed_seconds ? html`<div class="detail-metrics" style="margin-bottom:6px"><span>\u23f1 <b>${result.elapsed_seconds >= 100 ? Math.round(result.elapsed_seconds) : Number(result.elapsed_seconds).toFixed(1)}s</b></span><span>\u26a1 <b>${result.completion_tokens || 0}</b> tok</span></div>` : null}
+            ${result.elapsed_seconds ? html`<div class="detail-metrics" style="margin-bottom:6px"><span>\u23f1 <b>${result.elapsed_seconds >= 100 ? Math.round(result.elapsed_seconds) : Number(result.elapsed_seconds).toFixed(1)}s</b></span><span>\u26a1 <b>${result.completion_tokens || 0}</b> tok</span>${result.thinking_tokens > 0 ? html`<span>\uD83E\uDDE0 <b>${result.thinking_tokens}</b> think tok</span>` : null}</div>` : null}
             ${result.responses ? html`
               <details style="margin-top:4px">
                 <summary style="font-family:var(--font-data);font-size:13px;color:var(--text-3);cursor:pointer">Responses (${result.responses.length} turns)</summary>

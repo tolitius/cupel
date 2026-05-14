@@ -110,7 +110,9 @@ def cmd_run(args):
                 elif status == "error":
                     print(f"ERROR: {result.get('error','')[:80]}")
                 else:
-                    print(f"done ({status}, {result.get('completion_tokens','?')} tok)")
+                    ttok = result.get('thinking_tokens', 0)
+                    think_str = f"  🧠 {ttok} think tok" if ttok > 0 else ""
+                    print(f"done ({status}, {result.get('completion_tokens','?')} tok{think_str})")
 
     # Save per-model JSONs
     t_label = f"_think{thinking_budget}" if thinking_budget is not None else ""

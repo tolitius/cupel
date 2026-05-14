@@ -180,6 +180,9 @@ def _call_llm_raw(
         choice = choices[0].get("message") or choices[0].get("delta", {})
         content_text = choice.get("content") or ""   # content can be null for tool_calls
         thinking = choice.get("thinking") or ""
+        # fix: oMLX, DeepSeek, vLLM, SGLang, llama.cpp, Ollama use reasoning_content
+        if not thinking and choice.get("reasoning_content"):
+            thinking = choice["reasoning_content"]
         # OpenRouter returns reasoning in a separate field
         if not thinking and choice.get("reasoning"):
             thinking = choice["reasoning"]
@@ -219,12 +222,16 @@ def _call_llm_raw(
         log.warning("llm response truncated (hit max_tokens=%d)  model=%s elapsed=%.1fs tokens=%d",
                     max_tokens, model, elapsed, completion_tokens)
 
+    # estimate thinking tokens from text — no tokenizer dependency
+    thinking_tokens = len(thinking) // 4 if thinking else 0
+
     return {
         "content": content_text,
         "thinking": thinking,
         "elapsed_seconds": round(elapsed, 2),
         "prompt_tokens": prompt_tokens,
         "completion_tokens": completion_tokens,
+        "thinking_tokens": thinking_tokens,
         "total_tokens": usage.get("total_tokens", prompt_tokens + completion_tokens),
         "finish_reason": finish_reason,
     }
@@ -353,6 +360,7 @@ def run_prompt(api_url, api_key, model, p, cfg, image_b64):
                 "prompt": p["prompt"], "response": "", "thinking": thinking,
                 "elapsed_seconds": resp["elapsed_seconds"],
                 "completion_tokens": resp["completion_tokens"],
+                "thinking_tokens": resp.get("thinking_tokens", 0),
                 "error": "truncated: thinking consumed all tokens, no answer produced",
                 "score": None,
             }, "error"
@@ -362,6 +370,7 @@ def run_prompt(api_url, api_key, model, p, cfg, image_b64):
             "prompt": p["prompt"], "response": content, "thinking": thinking,
             "elapsed_seconds": resp["elapsed_seconds"],
             "completion_tokens": resp["completion_tokens"],
+            "thinking_tokens": resp.get("thinking_tokens", 0),
             "score": None, "judge_reason": "", "notes": "",
         }
         if finish_reason == "length":
