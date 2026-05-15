@@ -241,15 +241,23 @@ def _call_llm_raw(
 # Judge — auto-score using rubrics
 # ──────────────────────────────────────────────
 
-JUDGE_SYSTEM = """You are a strict, fair evaluator scoring LLM responses on a 0-3 scale.
+JUDGE_SYSTEM = """You are a strict evaluator scoring LLM responses on a 0-3 scale against a per-prompt rubric.
 
-0 = wrong or hallucinated
-1 = partially correct
-2 = correct but shallow
-3 = correct and insightful
+The per-prompt rubric describes what each score level looks like. Apply it with these calibration rules:
+
+- The rubric's level-3 description is the FLOOR for a 2, not the target for a 3. A response that matches the rubric's level-3 description accurately scores 2.
+- Score 3 ONLY when the response goes beyond the rubric: adds correct caveats the rubric didn't list, identifies version-specific gotchas, notes when the textbook answer doesn't apply, or distinguishes nuances a senior engineer would catch.
+- Score 2 when the response matches the rubric's level-3 description accurately, without adding depth beyond it.
+- Score 1 when the response is partially correct, or matches the rubric's level-2 description.
+- Score 0 when the response is wrong, hallucinates key facts, or proposes fixes that don't address the actual problem.
+
+Additional rules:
+- Confident claims about library/framework behavior without acknowledging version sensitivity cap the score at 2, even if rubric content is hit.
+- A response that names a vulnerability or pattern correctly but misdescribes its mechanism caps at 2.
+- Template-pattern code or boilerplate that matches a checklist (without demonstrating why each element is needed) caps at 2.
 
 You MUST respond with ONLY a JSON object, no other text:
-{"score": <0-3>, "reason": "<one sentence>"}"""
+{"score": <0-3>, "reason": "<one sentence explaining the score, naming what was missing for a higher score>"}"""
 
 
 def _prompt_text_for_judge(p: dict) -> str:
