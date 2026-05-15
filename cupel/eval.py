@@ -241,23 +241,34 @@ def _call_llm_raw(
 # Judge — auto-score using rubrics
 # ──────────────────────────────────────────────
 
-JUDGE_SYSTEM = """You are a strict evaluator scoring LLM responses on a 0-3 scale against a per-prompt rubric.
+JUDGE_SYSTEM = """You are a strict evaluator scoring LLM responses against per-prompt rubrics.
 
-The per-prompt rubric describes what each score level looks like. Apply it with these calibration rules:
+Shared rules for all rubric formats:
+- Be evidence-based: cite verbatim quotes from the response to justify each judgment.
+- Be conservative: when in doubt, mark lower / UNMET.
+- Do not infer intent — judge only what is explicitly stated in the response.
 
-- The rubric's level-3 description is the FLOOR for a 2, not the target for a 3. A response that matches the rubric's level-3 description accurately scores 2.
-- Score 3 ONLY when the response goes beyond the rubric: adds correct caveats the rubric didn't list, identifies version-specific gotchas, notes when the textbook answer doesn't apply, or distinguishes nuances a senior engineer would catch.
-- Score 2 when the response matches the rubric's level-3 description accurately, without adding depth beyond it.
-- Score 1 when the response is partially correct, or matches the rubric's level-2 description.
-- Score 0 when the response is wrong, hallucinates key facts, or proposes fixes that don't address the actual problem.
+## Format A — Level rubric (keys "0","1","2","3")
+Score 0-3 per the level descriptions with these calibration rules:
+- The rubric's level-3 description is the FLOOR for a 2, not the target for a 3.
+- Score 3 ONLY when the response goes beyond the rubric: adds correct caveats, identifies version-specific gotchas, notes when the textbook answer doesn't apply, or distinguishes nuances a senior engineer would catch.
+- Score 2 when the response matches the rubric's level-3 description accurately.
+- Score 1 when the response is partially correct.
+- Score 0 when the response is wrong or hallucinates key facts.
+- Confident claims without version sensitivity cap at 2.
+- Naming a pattern correctly but misdescribing its mechanism caps at 2.
+- Template-pattern code without demonstrating why each element is needed caps at 2.
+Reply with ONLY: {"score": <0-3>, "reason": "<one sentence>"}
 
-Additional rules:
-- Confident claims about library/framework behavior without acknowledging version sensitivity cap the score at 2, even if rubric content is hit.
-- A response that names a vulnerability or pattern correctly but misdescribes its mechanism caps at 2.
-- Template-pattern code or boilerplate that matches a checklist (without demonstrating why each element is needed) caps at 2.
+## Format B — Criteria rubric (list of criteria with id/type/weight/check)
+Evaluate each criterion independently as MET or UNMET.
+- For each criterion, provide a verbatim substring quote from the response. The quote MUST appear verbatim in the response text — no paraphrasing, no summarization, no fabrication.
+- For UNMET criteria, the quote may be an empty string.
+- A criterion is MET only if the response clearly and correctly satisfies the check description AND you can cite a verbatim quote that demonstrates this.
+- When the response is ambiguous or partially addresses a criterion, mark UNMET.
+Reply with ONLY: {"criteria": [{"id": "<id>", "met": true/false, "quote": "<verbatim substring or empty string>"}], "reason": "<one sentence overall>"}
 
-You MUST respond with ONLY a JSON object, no other text:
-{"score": <0-3>, "reason": "<one sentence explaining the score, naming what was missing for a higher score>"}"""
+You MUST respond with ONLY a JSON object, no other text."""
 
 
 def _prompt_text_for_judge(p: dict) -> str:
@@ -275,8 +286,50 @@ def _prompt_text_for_judge(p: dict) -> str:
     return "\n\n".join(parts)
 
 
+def _is_criteria_rubric(rubric):
+    """Return True if rubric uses the criteria-based format."""
+    return isinstance(rubric, dict) and "criteria" in rubric
+
+
+def _build_criteria_judge_prompt(prompt_text, rubric, response_text, responses=None):
+    """Build judge prompt for criteria-based rubrics."""
+    parts = [f"## Prompt given to the model\n\n{prompt_text}"]
+
+    if rubric.get("context"):
+        parts.append(f"## Context\n\n{rubric['context']}")
+
+    criteria_lines = ["## Criteria to evaluate\n"]
+    for c in rubric["criteria"]:
+        criteria_lines.append(
+            f"- {c['id']} ({c['type']}, weight={c.get('weight', 1)}): {c['check']}"
+        )
+    parts.append("\n".join(criteria_lines))
+
+    if responses and len(responses) > 1:
+        resp_section = "## Full conversation responses (judge all turns)\n\n"
+        for i, r in enumerate(responses, 1):
+            resp_section += f"### Turn {i} response\n\n{r}\n\n"
+        parts.append(resp_section)
+    else:
+        parts.append(f"## Response to score\n\n{response_text}")
+
+    parts.append(
+        'For each criterion, decide MET or UNMET and provide a verbatim substring quote from the response. '
+        'The quote MUST appear verbatim in the response text — no paraphrasing. For UNMET, the quote may be an empty string. '
+        'Respond with ONLY JSON:\n'
+        '{"criteria": [{"id": "<criterion_id>", "met": true/false, '
+        '"quote": "<verbatim substring or empty string>"}], '
+        '"reason": "<one sentence overall>"}'
+    )
+
+    return "\n\n".join(parts)
+
+
 def build_judge_prompt(prompt_text: str, rubric: dict, response_text: str,
                        responses: list[str] | None = None) -> str:
+    if _is_criteria_rubric(rubric):
+        return _build_criteria_judge_prompt(prompt_text, rubric, response_text, responses)
+
     rubric_str = "\n".join(f"  {k}: {v}" for k, v in sorted(rubric.items()))
 
     # For multi-turn: show the full conversation transcript
@@ -300,14 +353,87 @@ def build_judge_prompt(prompt_text: str, rubric: dict, response_text: str,
 Score this response 0-3 per the rubric. Respond with ONLY JSON: {{"score": <0-3>, "reason": "<one sentence>"}}"""
 
 
-def parse_judge_response(text: str) -> tuple[int | None, str]:
+# ── Criteria aggregation ──
+
+DEFAULT_SCORE_MAP = [(7, 3), (5, 2), (3, 1), (0, 0)]
+
+
+def _parse_score_map(score_map_dict):
+    """Parse score_map dict with range-string keys into [(threshold, score)] sorted desc."""
+    if not score_map_dict:
+        return DEFAULT_SCORE_MAP
+    try:
+        entries = []
+        for key, score in score_map_dict.items():
+            key = str(key).strip()
+            if key.endswith("+"):
+                threshold = int(key[:-1])
+            elif "-" in key:
+                threshold = int(key.split("-")[0])
+            else:
+                threshold = int(key)
+            entries.append((threshold, int(score)))
+        entries.sort(key=lambda x: x[0], reverse=True)
+        return entries
+    except (ValueError, TypeError):
+        return DEFAULT_SCORE_MAP
+
+
+def _aggregate_criteria(criteria_results, rubric):
+    """Aggregate criteria results into a 0-3 score.
+
+    Returns (final_score, total) where total = positive_met - negative_met, floored at 0.
+    """
+    criteria_lookup = {c["id"]: (c["type"], c.get("weight", 1)) for c in rubric["criteria"]}
+
+    positive_met = 0
+    negative_met = 0
+    for cr in criteria_results:
+        cid = cr["id"]
+        if cid not in criteria_lookup:
+            continue
+        ctype, weight = criteria_lookup[cid]
+        if cr.get("met"):
+            if ctype == "positive":
+                positive_met += weight
+            elif ctype == "negative":
+                negative_met += weight
+
+    total = max(0, positive_met - negative_met)
+
+    score_map = _parse_score_map(rubric.get("score_map"))
+    final_score = 0
+    for threshold, score in score_map:
+        if total >= threshold:
+            final_score = score
+            break
+
+    return final_score, total
+
+
+def parse_judge_response(text: str, rubric=None) -> tuple[int | None, str, list | None]:
     cleaned = re.sub(r"```(?:json)?\s*", "", text).strip().rstrip("`")
     try:
         obj = json.loads(cleaned)
+
+        # Criteria-based response
+        if "criteria" in obj and rubric is not None and _is_criteria_rubric(rubric):
+            criteria_results = obj["criteria"]
+            judge_reason = obj.get("reason", "")
+            final_score, total = _aggregate_criteria(criteria_results, rubric)
+            max_total = sum(c.get("weight", 1) for c in rubric["criteria"] if c["type"] == "positive")
+            marks = " ".join(
+                f"{cr['id']}{'✓' if cr.get('met') else '✗'}"
+                for cr in criteria_results
+            )
+            reason = f"{judge_reason} | criteria: {marks} | total: {total}/{max_total} → {final_score}"
+            return final_score, reason, criteria_results
+
+        # Legacy level-based response
         score = int(obj.get("score", -1))
         reason = obj.get("reason", "")
         if 0 <= score <= 3:
-            return score, reason
+            return score, reason, None
     except (json.JSONDecodeError, ValueError, TypeError):
         pass
     m = re.search(r'"score"\s*:\s*(\d)', text)
@@ -315,20 +441,42 @@ def parse_judge_response(text: str) -> tuple[int | None, str]:
         score = int(m.group(1))
         if 0 <= score <= 3:
             r = re.search(r'"reason"\s*:\s*"([^"]*)"', text)
-            return score, r.group(1) if r else ""
-    return None, f"unparseable judge response: {text[:100]}"
+            return score, r.group(1) if r else "", None
+    return None, f"unparseable judge response: {text[:100]}", None
 
 
 def score_one(api_url, api_key, judge_model, prompt_text, rubric, response_text,
               responses=None):
-    """Score a single response using the judge model."""
+    """Score a single response using the judge model. Returns (score, reason, criteria_results)."""
     judge_prompt = build_judge_prompt(prompt_text, rubric, response_text, responses)
-    resp = call_llm(
-        api_url, api_key, judge_model, judge_prompt,
-        temperature=0, max_tokens=256,
+    messages = [
+        {"role": "system", "content": JUDGE_SYSTEM},
+        {"role": "user", "content": judge_prompt},
+    ]
+    resp = call_llm_multi(
+        api_url, api_key, judge_model, messages,
+        temperature=0, max_tokens=1024,
         thinking_budget=0,
     )
-    return parse_judge_response(resp["content"])
+    score, reason, criteria_results = parse_judge_response(resp["content"], rubric=rubric)
+
+    # one-shot retry on parse failure for criteria-format rubrics only
+    if score is None and _is_criteria_rubric(rubric):
+        messages.append({"role": "assistant", "content": resp["content"]})
+        messages.append({"role": "user", "content":
+            "your previous response was not valid JSON. re-emit the same evaluation "
+            "as a single valid JSON object only — no prose, no markdown fences. "
+            "all string values must be properly JSON-escaped (escape double quotes as \\\", "
+            "newlines as \\n, backslashes as \\\\). quote fields should be SHORT — "
+            "pick the most diagnostic phrase, not a paragraph."})
+        resp = call_llm_multi(
+            api_url, api_key, judge_model, messages,
+            temperature=0, max_tokens=1024,
+            thinking_budget=0,
+        )
+        score, reason, criteria_results = parse_judge_response(resp["content"], rubric=rubric)
+
+    return score, reason, criteria_results
 
 
 # ──────────────────────────────────────────────
@@ -558,7 +706,7 @@ def judge_results(data_files, judge_model, judge_url, judge_key, rubric_by_id,
                 on_progress(model, pid, "judging", 0)
 
             try:
-                score, reason = score_one(
+                score, reason, criteria_results = score_one(
                     judge_url, judge_key, judge_model,
                     prompt_by_id.get(pid, ""),
                     rubric_by_id.get(pid, {}),
@@ -569,6 +717,8 @@ def judge_results(data_files, judge_model, judge_url, judge_key, rubric_by_id,
                     result["score"] = score
                     result["judge_reason"] = reason
                     result["judge_model"] = judge_model
+                    if criteria_results is not None:
+                        result["criteria_results"] = criteria_results
                     elapsed = result.get("elapsed_seconds", "")
                     if on_progress:
                         on_progress(model, pid, f"scored:{score}", elapsed)

@@ -255,7 +255,7 @@ def cmd_judge(args):
                                             title_prefix="⚖", api_url=judge_url, phase="judge"))
 
                     try:
-                        score, reason = score_one(
+                        score, reason, criteria_results = score_one(
                             judge_url, judge_key, judge_model,
                             prompt_by_id.get(pid, ""),
                             rubric_by_id.get(pid, {}),
@@ -266,6 +266,8 @@ def cmd_judge(args):
                             result["score"] = score
                             result["judge_reason"] = reason
                             result["judge_model"] = judge_model
+                            if criteria_results is not None:
+                                result["criteria_results"] = criteria_results
                             elapsed = result.get("elapsed_seconds", "")
                             score_state[(model, pid)] = (score, elapsed)
                         else:
@@ -291,7 +293,7 @@ def cmd_judge(args):
                     continue
                 print(f"    [{pid:2d}] {result['title'][:35]}...", end=" ", flush=True)
                 try:
-                    score, reason = score_one(
+                    score, reason, criteria_results = score_one(
                         judge_url, judge_key, judge_model,
                         prompt_by_id.get(pid, ""),
                         rubric_by_id.get(pid, {}),
@@ -302,6 +304,8 @@ def cmd_judge(args):
                         result["score"] = score
                         result["judge_reason"] = reason
                         result["judge_model"] = judge_model
+                        if criteria_results is not None:
+                            result["criteria_results"] = criteria_results
                         print(f"→ {score}/3  {reason[:50]}")
                     else:
                         result["judge_reason"] = reason

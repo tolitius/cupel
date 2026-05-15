@@ -937,7 +937,7 @@ async def _run_job(job: Job, body: dict):
                             continue
                         _emit(model, pid, "judging")
                         try:
-                            score, reason = await asyncio.to_thread(
+                            score, reason, criteria_results = await asyncio.to_thread(
                                 score_one, judge_url, judge_key, judge_model,
                                 prompt_by_id.get(pid, ""), rubric_by_id.get(pid, {}),
                                 result["response"], result.get("responses"),
@@ -946,6 +946,8 @@ async def _run_job(job: Job, body: dict):
                                 result["score"] = score
                                 result["judge_reason"] = reason
                                 result["judge_model"] = judge_model
+                                if criteria_results is not None:
+                                    result["criteria_results"] = criteria_results
                                 _emit(model, pid, f"scored:{score}", result.get("elapsed_seconds", 0))
                             else:
                                 log.warning("judge returned no score  model=%s prompt=#%d: %s", model, pid, reason[:100])
