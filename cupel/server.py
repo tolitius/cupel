@@ -116,7 +116,8 @@ def _config_path() -> Path:
     return Path.home() / ".cupel" / "config.yml"
 
 def _eval_set_path() -> Path:
-    return Path.home() / ".cupel" / "eval-sets" / "eval-set.json"
+    cfg = _read_config()
+    return resolve_path(cfg.get("eval_set", "eval-sets/eval-set.json"))
 
 def _read_config() -> dict:
     """Read config.yml, returning defaults if missing."""
