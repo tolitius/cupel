@@ -19,7 +19,7 @@ function ResultsPage() {
   const [detailData, setDetailData] = useState(null);
   const [showMuted, setShowMuted] = useState(() => {
     const saved = localStorage.getItem('cupel:results-show-muted');
-    return saved !== null ? JSON.parse(saved) : false;
+    return saved !== null ? JSON.parse(saved) : true;
   });
 
   useEffect(() => {
