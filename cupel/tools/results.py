@@ -270,7 +270,24 @@ def load_results_index(results_dir: Path) -> list[dict[str, Any]]:
                 ts = datetime.strptime(raw_ts, "%Y%m%d_%H%M%S").strftime("%Y-%m-%d %H:%M:%S")
             except (ValueError, TypeError):
                 ts = raw_ts
-            entries.append({"model": model, "timestamp": ts, "file": path.name})
+            # Compute score/total/accuracy from results
+            results = data.get("results", [])
+            score = 0
+            scored_count = 0
+            for r in results:
+                if isinstance(r, dict) and r.get("score") is not None:
+                    score += r["score"]
+                    scored_count += 1
+            total = scored_count * 3
+            if total > 0:
+                accuracy = round(score / total * 100, 1)
+            else:
+                accuracy = None
+
+            entries.append({
+                "model": model, "timestamp": ts, "file": path.name,
+                "score": score, "total": total, "accuracy": accuracy,
+            })
         except (json.JSONDecodeError, OSError):
             continue
 
@@ -291,11 +308,17 @@ def format_results_list(entries: list[dict[str, Any]], fmt: str) -> str:
 
     # Markdown table
     lines = [
-        "| # | model | timestamp | file |",
-        "| --- | --- | --- | --- |",
+        "| # | model | timestamp | score | accuracy | file |",
+        "| --- | --- | --- | --- | --- | --- |",
     ]
     for e in entries:
-        lines.append(f"| {e['n']} | {markdown_escape(e['model'])} | {e['timestamp']} | {e['file']} |")
+        if e.get("total", 0) > 0:
+            score_str = f"{e['score']}/{e['total']}"
+            acc_str = f"{e['accuracy']}%"
+        else:
+            score_str = ""
+            acc_str = ""
+        lines.append(f"| {e['n']} | {markdown_escape(e['model'])} | {e['timestamp']} | {score_str} | {acc_str} | {e['file']} |")
     return "\n".join(lines)
 
 
@@ -307,7 +330,7 @@ def cmd_results(args):
     if getattr(args, "n", None):
         pick_numbers = [int(x.strip()) for x in args.n.split(",")]
 
-    # -n mode: select specific numbered results
+    # -n mode: select specific numbered results and format them
     if pick_numbers:
         results_dir = resolve_path("./eval-results")
         if not results_dir.is_dir():
@@ -315,13 +338,24 @@ def cmd_results(args):
             sys.exit(1)
         all_entries = load_results_index(results_dir)
         by_number = {e["n"]: e for e in all_entries}
-        selected = []
+        eval_files = []
         for num in pick_numbers:
             if num in by_number:
-                selected.append(by_number[num])
+                path = results_dir / by_number[num]["file"]
+                eval_files.append(load_eval_file(path))
             else:
                 print(f"  ⚠ no result #{num}", file=sys.stderr)
-        output = format_results_list(selected, args.format)
+
+        if not eval_files:
+            print("  ✘ No matching result files found", file=sys.stderr)
+            sys.exit(1)
+
+        if args.format == "json":
+            output_data = make_json_output(eval_files)
+            output = json.dumps(output_data, ensure_ascii=False, indent=2)
+        else:
+            output = make_markdown_output(eval_files, args.criteria_mode)
+
         if args.output:
             Path(args.output).write_text(output + "\n", encoding="utf-8")
         else:
