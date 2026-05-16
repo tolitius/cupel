@@ -20,15 +20,26 @@ log = logging.getLogger("cupel")
 # Image handling
 # ──────────────────────────────────────────────
 
-def find_image(image_filename: str, image_dir: Path | None) -> str | None:
+def find_image(image_filename: str, image_dir: Path | None,
+               config_path: str | None = None) -> str | None:
+    # Try resolve_path first (handles relative paths anchored to config dir)
+    resolved = resolve_path(image_filename, config_path)
+    if resolved.exists():
+        with open(resolved, "rb") as f:
+            b64 = base64.b64encode(f.read()).decode("utf-8")
+        print(f"  ✓ Image: {resolved} ({len(b64) // 1024}KB)")
+        return b64
+
+    # Fall back to basename search for bare filenames
+    basename = Path(image_filename).name
     candidates = []
     if image_dir:
-        candidates.append(image_dir / image_filename)
+        candidates.append(image_dir / basename)
     candidates.extend([
-        Path.home() / ".cupel" / "eval-sets" / image_filename,
-        Path(__file__).parent / "data" / image_filename,
-        Path.cwd() / image_filename,
-        Path.cwd() / "eval-sets" / image_filename,
+        Path.home() / ".cupel" / "eval-sets" / basename,
+        Path(__file__).parent / "data" / basename,
+        Path.cwd() / basename,
+        Path.cwd() / "eval-sets" / basename,
     ])
     for path in candidates:
         if path.exists():

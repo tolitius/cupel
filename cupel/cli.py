@@ -61,7 +61,7 @@ def cmd_run(args):
     print(f"  thinking:  {tb if tb is not None else 'model default'}")
     print(f"  output:    {output_dir}")
 
-    image_b64 = find_image(cfg["image_filename"], args.image_dir)
+    image_b64 = find_image(cfg["image_filename"], args.image_dir, config_path)
     print()
     output_dir.mkdir(parents=True, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
