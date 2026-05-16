@@ -351,10 +351,11 @@ def cmd_results(args):
             sys.exit(1)
 
         if args.format == "json":
-            output_data = make_json_output(eval_files)
+            output_data = [make_json_output([ef]) for ef in eval_files]
             output = json.dumps(output_data, ensure_ascii=False, indent=2)
         else:
-            output = make_markdown_output(eval_files, args.criteria_mode)
+            sections = [make_markdown_output([ef], args.criteria_mode) for ef in eval_files]
+            output = "\n\n".join(sections)
 
         if args.output:
             Path(args.output).write_text(output + "\n", encoding="utf-8")
