@@ -440,6 +440,30 @@ examples:
     # ── init ──
     sub.add_parser("init", help="Create config.yml + eval-set.json in current directory")
 
+    # ── results ──
+    results_parser = sub.add_parser("results",
+        help="Format eval result files as Markdown or JSON",
+        epilog="""
+examples:
+  cupel results --list
+  cupel results --list --format json
+  cupel results eval-results/eval_*.json
+  cupel results eval-results/eval_*.json -o results.md
+  cupel results eval-results/eval_*.json --format json
+  cupel results eval-results/eval_*.json --criteria-mode full
+        """, formatter_class=argparse.RawDescriptionHelpFormatter)
+    results_parser.add_argument("files", nargs="*",
+        help="JSON result file(s) to format")
+    results_parser.add_argument("--list", action="store_true",
+        help="List available result files in ~/.cupel/eval-results/")
+    results_parser.add_argument("-o", "--output",
+        help="Write output to file instead of stdout")
+    results_parser.add_argument("--format", choices=["markdown", "json"],
+        default="markdown", help="Output format (default: markdown)")
+    results_parser.add_argument("--criteria-mode", choices=["compact", "full", "json"],
+        default="compact",
+        help="How to render criteria_results in Markdown (default: compact)")
+
     args = parser.parse_args()
 
     if args.command == "run":
@@ -449,6 +473,9 @@ examples:
     elif args.command == "ui":
         from cupel.server import _start_ui
         _start_ui()
+    elif args.command == "results":
+        from cupel.tools.results import cmd_results
+        cmd_results(args)
     elif args.command == "init":
         _cmd_init()
     else:
