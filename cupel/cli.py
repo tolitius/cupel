@@ -463,6 +463,10 @@ examples:
     results_parser.add_argument("--criteria-mode", choices=["compact", "full", "json"],
         default="compact",
         help="How to render criteria_results in Markdown (default: compact)")
+    results_parser.add_argument("--last", type=int, default=None, metavar="N",
+        help="Show only the last N results")
+    results_parser.add_argument("-n", default=None, metavar="NUMBERS",
+        help="Show results by number (e.g. -n 42,12,87)")
 
     args = parser.parse_args()
 

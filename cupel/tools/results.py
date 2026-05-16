@@ -256,8 +256,8 @@ def make_json_output(eval_files: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
-def list_results(results_dir: Path, fmt: str) -> str:
-    """List available eval result files with model names and timestamps."""
+def load_results_index(results_dir: Path) -> list[dict[str, Any]]:
+    """Load all eval result files and return numbered entries sorted oldest-first."""
     entries = []
 
     for path in sorted(results_dir.glob("eval_*.json")):
@@ -274,19 +274,28 @@ def list_results(results_dir: Path, fmt: str) -> str:
         except (json.JSONDecodeError, OSError):
             continue
 
-    # Sort newest first
-    entries.sort(key=lambda e: e["timestamp"], reverse=True)
+    # Sort oldest first (latest at bottom)
+    entries.sort(key=lambda e: e["timestamp"])
 
+    # Assign stable numbers starting from 1
+    for i, e in enumerate(entries, 1):
+        e["n"] = i
+
+    return entries
+
+
+def format_results_list(entries: list[dict[str, Any]], fmt: str) -> str:
+    """Format a list of result entries as Markdown or JSON."""
     if fmt == "json":
         return json.dumps(entries, ensure_ascii=False, indent=2)
 
     # Markdown table
     lines = [
-        "| model | timestamp | file |",
-        "| --- | --- | --- |",
+        "| # | model | timestamp | file |",
+        "| --- | --- | --- | --- |",
     ]
     for e in entries:
-        lines.append(f"| {markdown_escape(e['model'])} | {e['timestamp']} | {e['file']} |")
+        lines.append(f"| {e['n']} | {markdown_escape(e['model'])} | {e['timestamp']} | {e['file']} |")
     return "\n".join(lines)
 
 
@@ -294,21 +303,50 @@ def cmd_results(args):
     """Format eval result files as Markdown or JSON, or list available results."""
     from cupel.config import resolve_path
 
-    if getattr(args, "list", False):
+    pick_numbers = None
+    if getattr(args, "n", None):
+        pick_numbers = [int(x.strip()) for x in args.n.split(",")]
+
+    # -n mode: select specific numbered results
+    if pick_numbers:
         results_dir = resolve_path("./eval-results")
         if not results_dir.is_dir():
             print(f"  No results directory found: {results_dir}", file=sys.stderr)
             sys.exit(1)
-        output = list_results(results_dir, args.format)
+        all_entries = load_results_index(results_dir)
+        by_number = {e["n"]: e for e in all_entries}
+        selected = []
+        for num in pick_numbers:
+            if num in by_number:
+                selected.append(by_number[num])
+            else:
+                print(f"  ⚠ no result #{num}", file=sys.stderr)
+        output = format_results_list(selected, args.format)
         if args.output:
             Path(args.output).write_text(output + "\n", encoding="utf-8")
         else:
             print(output)
         return
 
-    # Resolve input files (expand globs)
+    # List mode: no files given, or --list, or --last
+    if not (args.files):
+        results_dir = resolve_path("./eval-results")
+        if not results_dir.is_dir():
+            print(f"  No results directory found: {results_dir}", file=sys.stderr)
+            sys.exit(1)
+        entries = load_results_index(results_dir)
+        if getattr(args, "last", None):
+            entries = entries[-args.last:]
+        output = format_results_list(entries, args.format)
+        if args.output:
+            Path(args.output).write_text(output + "\n", encoding="utf-8")
+        else:
+            print(output)
+        return
+
+    # Format mode: positional files provided
     input_files = []
-    for pattern in (args.files or []):
+    for pattern in args.files:
         expanded = globmod.glob(pattern)
         if expanded:
             input_files.extend(expanded)
@@ -319,7 +357,7 @@ def cmd_results(args):
     input_files = sorted(set(input_files))
 
     if not input_files:
-        print("  ✘ Provide result file(s) or use --list", file=sys.stderr)
+        print("  ✘ No matching result files found", file=sys.stderr)
         sys.exit(1)
 
     eval_files = [load_eval_file(Path(f)) for f in input_files]
