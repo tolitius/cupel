@@ -841,6 +841,12 @@ async def _run_job(job: Job, body: dict):
         if not eval_set.get("prompts"):
             raise FileNotFoundError("No eval set found \u2014 create one from the Author page or run 'cupel init'")
 
+        if not run_notes:
+            if eval_set_key == "starter":
+                run_notes = "starter"
+            else:
+                run_notes = _eval_set_path().stem
+
         prompts = eval_set["prompts"]
         if prompt_ids:
             id_set = set(prompt_ids)

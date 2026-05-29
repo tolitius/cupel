@@ -126,6 +126,7 @@ def cmd_run(args):
                 "thinking_budget": thinking_budget,
                 "timestamp": timestamp,
                 "eval_set": eval_set["name"],
+                "notes": eval_set_path.stem,
                 "results": all_results[model],
             }, f, indent=2)
         saved_files.append(str(out))
