@@ -317,6 +317,7 @@ function buildRadarConfig(entries, radarModels, cats, catPrompts) {
 function Dashboard({ providers, refreshProviders }) {
   const [leaderboard, setLeaderboard] = useState(null);
   const [hardware, setHardware] = useState(null);
+  const [version, setVersion] = useState(null);
   const [thermalState, setThermalState] = useState(null);
   const [dismissed, setDismissed] = useState(false);
   const [selectedModel, setSelectedModel] = useState(null);
@@ -367,10 +368,12 @@ function Dashboard({ providers, refreshProviders }) {
       fetch('/api/results/leaderboard').then(r => r.json()),
       fetch('/api/state').then(r => r.json()),
       fetch('/api/hardware').then(r => r.json()),
-    ]).then(([lb, st, hw]) => {
+      fetch('/api/version').then(r => r.json()),
+    ]).then(([lb, st, hw, ver]) => {
       setLeaderboard(lb);
       setState(st);
       setHardware(hw);
+      setVersion(ver.version);
     }).catch(console.error);
   }, []);
 
@@ -539,7 +542,7 @@ function Dashboard({ providers, refreshProviders }) {
   // -- Title strip --
   const titleStrip = html`
     <div class="title-strip" style="display:flex;align-items:baseline;justify-content:space-between">
-      <div class="title-main" style="margin-bottom:0">cupel</div>
+      <div class="title-main" style="margin-bottom:0">cupel${version ? html` <span style="font-size:12px;font-weight:400;color:var(--text-3);margin-left:3px">v${version}</span>` : ''}</div>
       <div style="font-family:var(--font-data);font-size:13px;color:var(--text-3)">
         ${hardwareStr}${thermalState != null && THERMAL[thermalState] ? (() => { const t = THERMAL[thermalState]; return html`<span title="thermal: ${t.label}" style="display:inline-flex;gap:2px;align-items:center;margin-left:8px;cursor:default">${[0,1,2,3].map(i => html`<span style="width:4px;height:12px;border-radius:1px;background:${i < t.bars ? t.color : 'var(--border-subtle)'}"></span>`)}</span>`; })() : ''}
       </div>

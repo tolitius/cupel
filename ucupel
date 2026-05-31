@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+LOG_DIR="$HOME/.cupel/logs"
+LOG_FILE="$LOG_DIR/restart-cupel.log"
+INSTALL_URL="https://cupel.run/install"
+CUPEL_DIR="$HOME/.cupel"
+
+mkdir -p "$LOG_DIR"
+
+log() {
+  printf '[%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*" | tee -a "$LOG_FILE"
+}
+
+log "update cupel"
+
+log "stopping existing cupel processes, if any"
+if pkill -f cupel; then
+  log "existing cupel process killed"
+else
+  log "no existing cupel process found"
+fi
+
+log "running cupel installer from $INSTALL_URL"
+if curl -fsSL "$INSTALL_URL" | bash 2>&1 | tee -a "$LOG_FILE"; then
+  log "installer completed successfully"
+else
+  log "installer failed"
+  exit 1
+fi
+
+if [[ ! -d "$CUPEL_DIR" ]]; then
+  log "cupel directory not found: $CUPEL_DIR"
+  exit 1
+fi
+
+cd "$CUPEL_DIR"
+
+log "starting cupel with nohup"
+nohup cupel >>"$LOG_FILE" 2>&1 &
+CUPEL_PID=$!
+
+log "started cupel with PID $CUPEL_PID"
+
+sleep 1
+
+if ps -p "$CUPEL_PID" >/dev/null 2>&1; then
+  log "cupel is running"
+else
+  log "cupel exited shortly after startup"
+  exit 1
+fi
+
+log "done"

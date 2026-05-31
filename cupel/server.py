@@ -415,6 +415,19 @@ async def fetch_provider_models(request: Request):
     except Exception as e:
         raise HTTPException(502, detail=f"Failed to fetch models: {e}")
 
+def _read_pyproject_version():
+    """Read version from pyproject.toml so it stays current even without reinstall."""
+    pyproject = Path(__file__).resolve().parent.parent / "pyproject.toml"
+    if pyproject.exists():
+        for line in pyproject.read_text().splitlines():
+            if line.startswith("version"):
+                return line.split("=", 1)[1].strip().strip('"').strip("'")
+    return __version__
+
+@app.get("/api/version")
+async def get_version():
+    return {"version": _read_pyproject_version()}
+
 @app.get("/api/hardware")
 async def get_hardware():
     hw = await asyncio.to_thread(detect_hardware)
