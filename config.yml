@@ -6,7 +6,7 @@ models:
 - Qwen3.5-35B-A3B-4bit
 - Qwen3-Coder-Next-8bit
 - GLM-4.7-Flash-8bit
-eval_set: eval-sets/coding-eval-set.json
+eval_set: eval-sets/coding-bench-v4.json
 image_filename: eval-sets/what-am-i-looking-at.png
 output_dir: ./eval-results
 temperature: null

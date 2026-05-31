@@ -54,6 +54,8 @@ function SettingsPage({ params, refreshProviders }) {
   const [editFetchedModels, setEditFetchedModels] = useState(null);
   const [editSelectedModels, setEditSelectedModels] = useState(new Set());
   const [editFetching, setEditFetching] = useState(false);
+  const [evalSets, setEvalSets] = useState([]);
+  const [evalDropdownOpen, setEvalDropdownOpen] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -61,11 +63,13 @@ function SettingsPage({ params, refreshProviders }) {
       fetch('/api/hardware').then(r => r.json()),
       fetch('/api/providers').then(r => r.json()),
       fetch('/api/providers/keys').then(r => r.json()).catch(() => ({})),
-    ]).then(([cfg, hw, pp, keys]) => {
+      fetch('/api/eval-sets').then(r => r.json()).catch(() => []),
+    ]).then(([cfg, hw, pp, keys, es]) => {
       setConfig(cfg);
       setHardware(hw);
       setProviders(pp);
       setProviderKeys(keys);
+      setEvalSets(es);
       setSaved(true);
       const j = cfg.judge || {};
       const isRemote = j.api_url && !j.api_url.includes('localhost') && !j.api_url.includes('127.0.0.1');
@@ -86,6 +90,39 @@ function SettingsPage({ params, refreshProviders }) {
     window.__cupelUnsaved = !saved && config !== null;
     return () => { window.__cupelUnsaved = false; };
   }, [saved, config]);
+
+  useEffect(() => {
+    if (!evalDropdownOpen) return;
+    const handleClick = (e) => {
+      const container = document.querySelector('.eval-dropdown-container');
+      if (container && !container.contains(e.target)) {
+        setEvalDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [evalDropdownOpen]);
+
+  const pickEvalFile = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = () => {
+      if (!input.files || !input.files[0]) return;
+      const name = input.files[0].name;
+      fetch(`/api/resolve-eval-set?filename=${encodeURIComponent(name)}`)
+        .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+        .then(data => {
+          setConfig(c => ({...c, eval_set: data.path}));
+          setSaved(false);
+        })
+        .catch(() => {
+          setConfig(c => ({...c, eval_set: `eval-sets/${name}`}));
+          setSaved(false);
+        });
+    };
+    input.click();
+  };
 
   const saveConfig = () => {
     setSaving(true);
@@ -371,7 +408,32 @@ function SettingsPage({ params, refreshProviders }) {
 
         <div style="margin-bottom: 16px">
           <label style="${inputLbl}">Eval Set Path</label>
-          <input class="input" value=${config.eval_set || ''} onInput=${e => { setConfig({...config, eval_set: e.target.value}); setSaved(false); }} />
+          <div style="display:flex;gap:8px;align-items:flex-start">
+            <div class="eval-dropdown-container" style="position:relative;flex:1">
+              <div class="input" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;min-height:38px"
+                onClick=${() => setEvalDropdownOpen(!evalDropdownOpen)}>
+                <span style="color:${config.eval_set ? 'var(--text)' : 'var(--text-3)'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+                  ${config.eval_set || 'choose eval set...'}
+                </span>
+                <span style="color:var(--text-3);font-size:12px;flex-shrink:0;margin-left:8px">${evalDropdownOpen ? '\u25B2' : '\u25BC'}</span>
+              </div>
+              ${evalDropdownOpen ? html`
+                <div style="position:absolute;top:100%;left:0;right:0;z-index:10;background:var(--bg-alt);border:1px solid var(--border);border-top:none;max-height:300px;overflow-y:auto;border-radius:0 0 var(--radius-md) var(--radius-md)">
+                  ${evalSets.length > 0 ? evalSets.map(es => html`
+                    <div style="padding:8px 12px;cursor:pointer;font-family:var(--font-data);font-size:14px;color:${config.eval_set === es ? 'var(--accent)' : 'var(--text)'};background:${config.eval_set === es ? 'var(--accent-dim)' : 'transparent'}"
+                      onMouseOver=${e => { if (config.eval_set !== es) e.currentTarget.style.background = 'var(--bg-hover)'; }}
+                      onMouseOut=${e => { e.currentTarget.style.background = config.eval_set === es ? 'var(--accent-dim)' : 'transparent'; }}
+                      onClick=${() => { setConfig({...config, eval_set: es}); setSaved(false); setEvalDropdownOpen(false); }}>
+                      ${es}
+                    </div>
+                  `) : html`
+                    <div style="padding:8px 12px;font-family:var(--font-data);font-size:14px;color:var(--text-3)">no eval sets found</div>
+                  `}
+                </div>
+              ` : null}
+            </div>
+            <button class="btn-ghost" style="min-height:38px;padding:0 12px;font-size:18px;line-height:1" onClick=${pickEvalFile} title="Browse">\u{1F4C2}</button>
+          </div>
         </div>
 
         <div style="display: flex; gap: 16px; margin-bottom: 16px">
@@ -660,6 +722,7 @@ function SettingsPage({ params, refreshProviders }) {
           ${saving ? 'Saving...' : saved ? 'Saved' : 'Save Configuration'}
         </button>
       </div>
+
     </div>
   `;
 }

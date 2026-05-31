@@ -446,6 +446,22 @@ async def put_config(request: Request):
 # Routes: eval set
 # ──────────────────────────────────────────────
 
+@app.get("/api/eval-sets")
+async def list_eval_sets():
+    es_dir = Path.home() / ".cupel" / "eval-sets"
+    if not es_dir.is_dir():
+        return []
+    files = sorted(p.name for p in es_dir.glob("*.json"))
+    return [f"eval-sets/{f}" for f in files]
+
+@app.get("/api/resolve-eval-set")
+async def resolve_eval_set(filename: str):
+    cupel_home = Path.home() / ".cupel"
+    for path in cupel_home.rglob(filename):
+        if path.is_file() and path.suffix == ".json":
+            return {"path": str(path.relative_to(cupel_home))}
+    raise HTTPException(404, detail="File not found")
+
 @app.get("/api/eval-set")
 async def get_eval_set(variant: str = None):
     if variant == "starter":
