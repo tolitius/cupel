@@ -56,6 +56,7 @@ function SettingsPage({ params, refreshProviders }) {
   const [editFetching, setEditFetching] = useState(false);
   const [evalSets, setEvalSets] = useState([]);
   const [evalDropdownOpen, setEvalDropdownOpen] = useState(false);
+  const [evalError, setEvalError] = useState(null);
 
   useEffect(() => {
     Promise.all([
@@ -104,22 +105,30 @@ function SettingsPage({ params, refreshProviders }) {
   }, [evalDropdownOpen]);
 
   const pickEvalFile = () => {
+    setEvalError(null);
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.json';
     input.onchange = () => {
       if (!input.files || !input.files[0]) return;
-      const name = input.files[0].name;
-      fetch(`/api/resolve-eval-set?filename=${encodeURIComponent(name)}`)
-        .then(r => { if (!r.ok) throw new Error(); return r.json(); })
-        .then(data => {
-          setConfig(c => ({...c, eval_set: data.path}));
-          setSaved(false);
+      const file = input.files[0];
+      const reader = new FileReader();
+      reader.onload = () => {
+        fetch('/api/import-eval-set', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content: reader.result, filename: file.name }),
         })
-        .catch(() => {
-          setConfig(c => ({...c, eval_set: `eval-sets/${name}`}));
-          setSaved(false);
-        });
+          .then(r => r.json().then(d => ({ ok: r.ok, data: d })))
+          .then(({ ok, data }) => {
+            if (!ok) { setEvalError(data.detail || 'Invalid eval set'); return; }
+            setConfig(c => ({...c, eval_set: data.path}));
+            setSaved(false);
+            fetch('/api/eval-sets').then(r => r.json()).then(setEvalSets).catch(() => {});
+          })
+          .catch(() => { setEvalError('Failed to import eval set'); });
+      };
+      reader.readAsText(file);
     };
     input.click();
   };
@@ -423,7 +432,7 @@ function SettingsPage({ params, refreshProviders }) {
                     <div style="padding:8px 12px;cursor:pointer;font-family:var(--font-data);font-size:14px;color:${config.eval_set === es ? 'var(--accent)' : 'var(--text)'};background:${config.eval_set === es ? 'var(--accent-dim)' : 'transparent'}"
                       onMouseOver=${e => { if (config.eval_set !== es) e.currentTarget.style.background = 'var(--bg-hover)'; }}
                       onMouseOut=${e => { e.currentTarget.style.background = config.eval_set === es ? 'var(--accent-dim)' : 'transparent'; }}
-                      onClick=${() => { setConfig({...config, eval_set: es}); setSaved(false); setEvalDropdownOpen(false); }}>
+                      onClick=${() => { setConfig({...config, eval_set: es}); setSaved(false); setEvalDropdownOpen(false); setEvalError(null); }}>
                       ${es}
                     </div>
                   `) : html`
@@ -432,8 +441,16 @@ function SettingsPage({ params, refreshProviders }) {
                 </div>
               ` : null}
             </div>
-            <button class="btn-ghost" style="min-height:38px;padding:0 12px;font-size:18px;line-height:1" onClick=${pickEvalFile} title="Browse">\u{1F4C2}</button>
+            <button class="btn-ghost" style="min-height:38px;padding:0 12px;line-height:1" onClick=${pickEvalFile} title="Browse">
+              <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="#d46a3a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 5a2 2 0 012-2h4l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V5z"/>
+                <path d="M2 8h16"/>
+              </svg>
+            </button>
           </div>
+          ${evalError ? html`
+            <div style="margin-top:6px;font-family:var(--font-data);font-size:13px;color:var(--bad)">${evalError}</div>
+          ` : null}
         </div>
 
         <div style="display: flex; gap: 16px; margin-bottom: 16px">

@@ -454,13 +454,27 @@ async def list_eval_sets():
     files = sorted(p.name for p in es_dir.glob("*.json"))
     return [f"eval-sets/{f}" for f in files]
 
-@app.get("/api/resolve-eval-set")
-async def resolve_eval_set(filename: str):
-    cupel_home = Path.home() / ".cupel"
-    for path in cupel_home.rglob(filename):
-        if path.is_file() and path.suffix == ".json":
-            return {"path": str(path.relative_to(cupel_home))}
-    raise HTTPException(404, detail="File not found")
+@app.post("/api/import-eval-set")
+async def import_eval_set(request: Request):
+    body = await request.json()
+    content = body.get("content")
+    filename = body.get("filename", "")
+    try:
+        data = json.loads(content)
+    except (json.JSONDecodeError, TypeError):
+        raise HTTPException(400, detail="File is not valid JSON")
+    if not isinstance(data, dict):
+        raise HTTPException(400, detail="Eval set must be a JSON object, got " + type(data).__name__)
+    if "name" not in data or not isinstance(data.get("name"), str) or not data["name"].strip():
+        raise HTTPException(400, detail='Eval set must have a non-empty "name" field')
+    if "prompts" not in data or not isinstance(data.get("prompts"), list):
+        raise HTTPException(400, detail='Eval set must have a "prompts" array')
+    es_dir = Path.home() / ".cupel" / "eval-sets"
+    es_dir.mkdir(parents=True, exist_ok=True)
+    dest = es_dir / filename
+    with open(dest, "w") as f:
+        f.write(content)
+    return {"path": f"eval-sets/{filename}"}
 
 @app.get("/api/eval-set")
 async def get_eval_set(variant: str = None):
