@@ -581,23 +581,25 @@ async def get_leaderboard():
         total_tokens = sum(r.get("completion_tokens", 0) for r in data["results"])
         num_prompts = len(data["results"])
 
-        # Determine if run was local or via external provider
+        # Use hardware stored at run time; fall back to detection for old files
         api_url = data.get("api_url", "")
-        is_local = not api_url or "localhost" in api_url or "127.0.0.1" in api_url
-        if is_local:
-            entry_hw = hw
+        if "hardware" in data:
+            entry_hw = data["hardware"]
         else:
-            # Derive provider name from URL
-            if "openrouter.ai" in api_url:
-                prov_name = "OpenRouter"
-            elif "anthropic.com" in api_url:
-                prov_name = "Anthropic"
-            elif "openai.com" in api_url:
-                prov_name = "OpenAI"
+            is_local = not api_url or "localhost" in api_url or "127.0.0.1" in api_url
+            if is_local:
+                entry_hw = hw
             else:
-                from urllib.parse import urlparse
-                prov_name = urlparse(api_url).hostname or api_url
-            entry_hw = {"name": prov_name, "memory": ""}
+                if "openrouter.ai" in api_url:
+                    prov_name = "OpenRouter"
+                elif "anthropic.com" in api_url:
+                    prov_name = "Anthropic"
+                elif "openai.com" in api_url:
+                    prov_name = "OpenAI"
+                else:
+                    from urllib.parse import urlparse
+                    prov_name = urlparse(api_url).hostname or api_url
+                entry_hw = {"name": prov_name, "memory": ""}
 
         entries_list.append({
             "model": model,
@@ -923,6 +925,7 @@ async def _run_job(job: Job, body: dict):
         output_dir = resolve_path(cfg.get("output_dir", "./eval-results"))
         output_dir.mkdir(parents=True, exist_ok=True)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        hw = await asyncio.to_thread(detect_hardware)
         thinking_budget = cfg.get("_thinking_budget")
         t_label = f"_think{thinking_budget}" if thinking_budget is not None else ""
         saved_files = []
@@ -968,6 +971,7 @@ async def _run_job(job: Job, body: dict):
                     "thinking_budget": thinking_budget,
                     "timestamp": timestamp,
                     "notes": run_notes,
+                    "hardware": hw,
                     "results": all_results[model],
                 }
                 with open(out, "w") as f:

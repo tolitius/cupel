@@ -18,6 +18,7 @@ def cmd_run(args):
         resolve_path,
     )
     from cupel.eval import find_image, run_prompt
+    from cupel.discovery import detect_hardware
     from cupel.display import HAS_RICH, build_table
 
     dotenv_path = load_dotenv(args.env_file)
@@ -115,6 +116,7 @@ def cmd_run(args):
                     print(f"done ({status}, {result.get('completion_tokens','?')} tok{think_str})")
 
     # Save per-model JSONs
+    hw = detect_hardware()
     t_label = f"_think{thinking_budget}" if thinking_budget is not None else ""
     saved_files = []
     for model in models:
@@ -127,6 +129,7 @@ def cmd_run(args):
                 "timestamp": timestamp,
                 "eval_set": eval_set["name"],
                 "notes": eval_set_path.stem,
+                "hardware": hw,
                 "results": all_results[model],
             }, f, indent=2)
         saved_files.append(str(out))
