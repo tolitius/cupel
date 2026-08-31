@@ -1,5 +1,7 @@
 const { h, useState, useEffect, useCallback, html } = window.__preact;
 
+import { connectSSE } from '../lib/jobs.js';
+
 const CAT_COLORS = {
   multimodal: "#c77dba", security: "#d4845a", clojure_code: "#8b7ec8",
   distributed_systems: "#5b9bd5", ml_architecture: "#4cb89a", python_coding: "#c9a033",
@@ -30,25 +32,8 @@ const THERMAL = {
   3: { label: 'critical', bars: 4, color: 'var(--bad)' },
 };
 
-function connectSSE(jobId, onEvent) {
-  console.log('[cupel] SSE connecting to job', jobId);
-  const es = new EventSource(`/api/jobs/${jobId}/stream`);
-  es.onmessage = (e) => {
-    const data = JSON.parse(e.data);
-    if (data.type === 'error') console.error('[cupel] job error:', data.error || data);
-    else if (data.status === 'error') console.warn('[cupel] prompt error:', data.model, '#' + data.prompt_id, data);
-    onEvent(data);
-    if (data.type === 'complete' || data.type === 'error' || data.type === 'cancelled') {
-      console.log('[cupel] SSE closed:', data.type);
-      es.close();
-    }
-  };
-  es.onerror = (err) => {
-    console.error('[cupel] SSE connection error \u2014 stream dropped', err);
-    es.close();
-  };
-  return es;
-}
+// connectSSE lives in ../lib/jobs.js \u2014 the results page drives the same job
+// stream, and two copies of this would drift.
 
 function catLabel(c) { return (c || '').replace(/_/g, ' '); }
 

@@ -359,6 +359,9 @@ body {
 .lb .td-score small { font-size: 12px; font-weight: 400; color: var(--text-3); }
 .lb .td-pct { font-family: var(--font-data); font-size: 20px; font-weight: 700; text-align: right; color: var(--text); }
 .lb tbody tr.winner .td-pct { color: var(--accent-bright); font-size: 22px; }
+/* confidence interval half-width — same weight as Pts/Speed, it is data not a footnote */
+.lb .td-ci { font-family: var(--font-data); font-size: 14px; text-align: right; color: var(--text-3); }
+.lb tbody tr.winner .td-ci { color: var(--text-2); }
 .lb .td-delta { font-family: var(--font-data); font-size: 14px; font-weight: 600; text-align: right; }
 .lb .td-delta.up { color: var(--good); }
 .lb .td-delta.down { color: var(--bad); }

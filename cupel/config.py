@@ -32,7 +32,11 @@ DEFAULTS = {
     "eval_set": "eval-sets/eval-set.json",
     "image_filename": "what-am-i-looking-at.png",
     "output_dir": "./eval-results",
-    "temperature": None,
+    # Pinned, not left to the engine. Unpinned sampling (engine defaults are
+    # typically 0.7-1.0) made repeat runs of the *same* model disagree on ~10% of
+    # prompts and drift the total by up to 6 points — wider than the spread across
+    # the whole leaderboard. Set `temperature: null` in config.yml to opt back out.
+    "temperature": 0,
     "max_tokens": 16384,
     "generation_model": "",
 }

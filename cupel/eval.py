@@ -12,6 +12,11 @@ from datetime import datetime
 
 from cupel import __version__
 from cupel.config import resolve_path
+from cupel.stats import criteria_score
+from cupel.schema import (
+    make_judgment, add_judgment, scoring_version, normalize_run, refresh_judges,
+    infer_eval_set, record_judge_error,
+)
 
 log = logging.getLogger("cupel")
 
@@ -456,6 +461,134 @@ def parse_judge_response(text: str, rubric=None) -> tuple[int | None, str, list 
     return None, f"unparseable judge response: {text[:100]}", None
 
 
+def rubrics_for_run(data, forced_eval_set=None):
+    """Load the rubrics and prompts a run was actually scored against.
+
+    Resolution order: an explicitly forced set, then the set recorded in the run,
+    then identification from the run's own (id, title) pairs. If none of those
+    succeed it gives up rather than guessing — judging against whatever eval set
+    config.yml happens to name today is how a run of one benchmark got graded
+    against another's rubrics, silently rewriting every score.
+
+    Returns (rubric_by_id, prompt_by_id, prompts, warning or None).
+    """
+    from cupel.schema import eval_set_meta
+
+    if forced_eval_set is not None:
+        return _rubric_maps(forced_eval_set) + (None,)
+
+    meta = data.get("eval_set")
+    warning = None
+
+    if isinstance(meta, dict) and meta.get("path"):
+        p = Path(meta["path"])
+        if not p.is_absolute():
+            p = resolve_path(str(p))
+        if p.exists():
+            try:
+                with open(p) as f:
+                    eval_set = json.load(f)
+            except (OSError, json.JSONDecodeError) as e:
+                eval_set, warning = None, f"could not read {p.name}: {e}"
+            if eval_set is not None:
+                if meta.get("hash") and eval_set_meta(p, eval_set)["hash"] != meta["hash"]:
+                    warning = (f"{p.name} has changed since this run — rubrics may "
+                               f"not match the prompts that were scored")
+                return _rubric_maps(eval_set) + (warning,)
+        else:
+            warning = f"eval set {meta['path']} no longer exists"
+    else:
+        warning = "run predates eval-set tracking"
+
+    # No recorded eval set. Identify it from the run's own (id, title) pairs before
+    # considering anything else — falling back to whatever config names today is how
+    # a cupel-og run got graded against coding-bench-v4's Python rubrics.
+    path, inferred, confidence = infer_eval_set(data, _available_eval_sets())
+    if inferred is not None:
+        return _rubric_maps(inferred) + (
+            f"{warning}; identified as {Path(path).name} "
+            f"({confidence:.0%} of prompts match)",)
+
+    # Refuse rather than guess. A wrong eval set silently rewrites every score.
+    detail = (f"best match was only {confidence:.0%}"
+              if confidence else "no eval set in ~/.cupel/eval-sets/ matches its prompts")
+    return {}, {}, [], (
+        f"{warning}; cannot identify which eval set this run used — {detail}. "
+        f"Pass --eval-set to say explicitly.")
+
+
+def _available_eval_sets():
+    """(path, eval_set) for every eval set on disk, for identification."""
+    out = []
+    seen = set()
+    for d in (Path.home() / ".cupel" / "eval-sets", Path(__file__).parent / "data"):
+        if not d.is_dir():
+            continue
+        for p in sorted(d.glob("*.json")):
+            if p.resolve() in seen:
+                continue
+            seen.add(p.resolve())
+            try:
+                with open(p) as f:
+                    data = json.load(f)
+            except (OSError, json.JSONDecodeError):
+                continue
+            if isinstance(data, dict) and data.get("prompts"):
+                out.append((p, data))
+    return out
+
+
+def _rubric_maps(eval_set):
+    prompts = eval_set.get("prompts", [])
+    return (
+        {p["id"]: p.get("rubric", {}) for p in prompts},
+        {p["id"]: _prompt_text_for_judge(p) for p in prompts},
+        prompts,
+    )
+
+
+def apply_judgment(result, score, reason, criteria_results, judge_model, rubric=None,
+                   judge_url="", replace=False):
+    """Record a judgment on a result.
+
+    The single place a score lands on a result, so the CLI, the server, and the
+    importable orchestrator all behave identically — they used to do this inline
+    in four places and had already drifted.
+
+    Judgments accumulate rather than overwrite: re-judging with a second judge
+    keeps the first, which is what makes judges comparable and disagreement
+    measurable. `score` and friends remain on the record as a mirror of the
+    consensus so existing readers are unaffected.
+
+    For criteria rubrics this also stores `check_score`: the continuous 0.0-1.0
+    value from the criteria vector. That is the number to compare models on;
+    collapsing it to 0-3 costs most of the power to tell two models apart
+    (see cupel.stats).
+    """
+    check = None
+    if criteria_results is not None and rubric:
+        cs = criteria_score(criteria_results, rubric)
+        if cs is not None:
+            check = round(cs, 4)
+
+    judgment = make_judgment(
+        judge_model=judge_model,
+        judge_url=judge_url,
+        score=score,
+        reason=reason,
+        criteria_results=criteria_results,
+        check_score=check,
+        version=scoring_version(rubric or {}, JUDGE_SYSTEM),
+    )
+    return add_judgment(result, judgment, replace=replace)
+
+
+# Judges that reason before answering can spend the whole budget thinking and
+# return no JSON at all. 1024 was too tight for local thinking models — observed
+# failing ~26% of prompts, reported only as "unparseable".
+JUDGE_MAX_TOKENS = int(os.environ.get("CUPEL_JUDGE_MAX_TOKENS", "3072"))
+
+
 def score_one(api_url, api_key, judge_model, prompt_text, rubric, response_text,
               responses=None):
     """Score a single response using the judge model. Returns (score, reason, criteria_results)."""
@@ -466,13 +599,22 @@ def score_one(api_url, api_key, judge_model, prompt_text, rubric, response_text,
     ]
     resp = call_llm_multi(
         api_url, api_key, judge_model, messages,
-        temperature=0, max_tokens=1024,
+        temperature=0, max_tokens=JUDGE_MAX_TOKENS,
         thinking_budget=0,
     )
     score, reason, criteria_results = parse_judge_response(resp["content"], rubric=rubric)
 
-    # one-shot retry on parse failure for criteria-format rubrics only
-    if score is None and _is_criteria_rubric(rubric):
+    if score is None and resp.get("finish_reason") == "length":
+        # not a malformed answer — the judge never finished one
+        return None, (f"judge hit the {JUDGE_MAX_TOKENS}-token limit before answering "
+                      f"(thinking used {resp.get('thinking_tokens', 0)} est. tokens); "
+                      f"raise CUPEL_JUDGE_MAX_TOKENS or use a judge that answers directly"), None
+
+    # One-shot retry on parse failure. Only worth spending a second round-trip when
+    # the judge at least attempted JSON: a reply with no brace at all is a model that
+    # answered in prose, and asking it to "re-emit as valid JSON" just produces more
+    # prose at double the cost — observed on a small local judge in the field.
+    if score is None and "{" in resp["content"]:
         messages.append({"role": "assistant", "content": resp["content"]})
         messages.append({"role": "user", "content":
             "your previous response was not valid JSON. re-emit the same evaluation "
@@ -482,7 +624,7 @@ def score_one(api_url, api_key, judge_model, prompt_text, rubric, response_text,
             "pick the most diagnostic phrase, not a paragraph."})
         resp = call_llm_multi(
             api_url, api_key, judge_model, messages,
-            temperature=0, max_tokens=1024,
+            temperature=0, max_tokens=JUDGE_MAX_TOKENS,
             thinking_budget=0,
         )
         score, reason, criteria_results = parse_judge_response(resp["content"], rubric=rubric)
@@ -686,9 +828,72 @@ def run_eval(models, prompts, cfg, api_url, api_key, image_b64=None, on_progress
     return all_results, saved_files
 
 
+def rubric_is_empty(rubric) -> bool:
+    """True when a rubric carries nothing to grade against.
+
+    Covers the absent case and the subtler one: a criteria rubric whose `criteria`
+    list is empty is a non-empty dict, so a plain truthiness check waves it through
+    and the judge scores every criterion unmet — a 0.
+    """
+    if not rubric:
+        return True
+    if _is_criteria_rubric(rubric):
+        return not rubric.get("criteria")
+    # a level rubric needs at least one level description
+    return not any(str(v).strip() for v in rubric.values() if not isinstance(v, (dict, list)))
+
+
+def judge_one(result, rubric, prompt_text, judge_url, judge_key, judge_model,
+              replace=False):
+    """Judge a single result in place. Returns (status, score).
+
+    status is "skip", "scored", or "error". This is the one place the decision to
+    skip, score, or record a failure lives — the CLI, the server, and
+    `judge_results` each used to carry their own copy of it, and every fix to one
+    had to be remembered in the other three. It wasn't, three times over: the
+    empty-rubric guard and the failure-path desync each shipped to some copies and
+    not others.
+    """
+    has_response = result.get("response") or any(r for r in result.get("responses", []))
+    if result.get("skipped") or result.get("error") or not has_response:
+        return "skip", None
+
+    # An absent rubric means this prompt isn't in the eval set being used. Judging
+    # anyway hands the judge an empty rubric, which it reports as "nothing met" and
+    # scores 0 — turning a missing rubric into a failing grade.
+    if rubric_is_empty(rubric):
+        record_judge_error(result, judge_model,
+                           "no rubric for this prompt in the eval set — not scored")
+        return "skip", None
+
+    try:
+        score, reason, criteria_results = score_one(
+            judge_url, judge_key, judge_model, prompt_text, rubric,
+            result["response"], responses=result.get("responses"),
+        )
+    except Exception as e:
+        log.warning("judge scoring failed  prompt=#%s: %s", result.get("id"), e)
+        record_judge_error(result, judge_model, f"judge error: {e}")
+        return "error", None
+
+    if score is None:
+        # a failed judgment adds no judgment, so it must not touch the mirrored
+        # score/reason — those belong to the judgments that did stand
+        record_judge_error(result, judge_model, reason)
+        return "error", None
+
+    apply_judgment(result, score, reason, criteria_results, judge_model, rubric,
+                   judge_url=judge_url, replace=replace)
+    return "scored", score
+
+
 def judge_results(data_files, judge_model, judge_url, judge_key, rubric_by_id,
-                  prompt_by_id, on_progress=None):
+                  prompt_by_id, on_progress=None, replace=False):
     """Score existing result files. Importable from server.py.
+
+    Judgments are appended, so re-judging with a different judge keeps the earlier
+    one and the two become comparable. Pass replace=True for the old destructive
+    behaviour.
 
     Args:
         data_files: list of (filepath, data_dict) tuples
@@ -698,54 +903,33 @@ def judge_results(data_files, judge_model, judge_url, judge_key, rubric_by_id,
         rubric_by_id: {prompt_id: rubric_dict}
         prompt_by_id: {prompt_id: prompt_text}
         on_progress: callback(model, prompt_id, status, elapsed) for SSE
+        replace: discard existing judgments instead of appending
 
     Returns:
         list of updated (filepath, data_dict) tuples
     """
     for fpath, data in data_files:
         model = data["model"]
+        # bring pre-judgments files into the current shape before adding to them
+        normalize_run(data)
         for result in data["results"]:
             pid = result["id"]
-
-            has_response = result.get("response") or any(r for r in result.get("responses", []))
-            if result.get("skipped") or result.get("error") or not has_response:
-                if on_progress:
-                    on_progress(model, pid, "skip", 0)
-                continue
-
             if on_progress:
                 on_progress(model, pid, "judging", 0)
 
-            try:
-                score, reason, criteria_results = score_one(
-                    judge_url, judge_key, judge_model,
-                    prompt_by_id.get(pid, ""),
-                    rubric_by_id.get(pid, {}),
-                    result["response"],
-                    responses=result.get("responses"),
-                )
-                if score is not None:
-                    result["score"] = score
-                    result["judge_reason"] = reason
-                    result["judge_model"] = judge_model
-                    if criteria_results is not None:
-                        result["criteria_results"] = criteria_results
-                    elapsed = result.get("elapsed_seconds", "")
-                    if on_progress:
-                        on_progress(model, pid, f"scored:{score}", elapsed)
+            status, score = judge_one(
+                result, rubric_by_id.get(pid), prompt_by_id.get(pid, ""),
+                judge_url, judge_key, judge_model, replace=replace,
+            )
+            if on_progress:
+                if status == "scored":
+                    on_progress(model, pid, f"scored:{score}", result.get("elapsed_seconds", ""))
                 else:
-                    result["judge_reason"] = reason
-                    if on_progress:
-                        on_progress(model, pid, "error", 0)
-            except Exception as e:
-                log.warning("judge scoring failed  model=%s prompt=#%d: %s", model, pid, e)
-                result["judge_reason"] = f"judge error: {e}"
-                if on_progress:
-                    on_progress(model, pid, "error", 0)
+                    on_progress(model, pid, status, 0)
 
-        # Save scores back
-        data["judge"] = judge_model
-        data["judge_url"] = judge_url
+        # Save scores back — refresh_judges rebuilds the run-level judge list and
+        # points the legacy judge/judge_url fields at the most recent judge.
+        refresh_judges(data)
         with open(fpath, "w") as f:
             json.dump(data, f, indent=2)
 

@@ -20,10 +20,17 @@ from cupel.config import (
     get_providers_config, resolve_api_key_for_port, resolve_path,
 )
 from cupel.eval import (
-    run_eval, judge_results, score_one, _prompt_text_for_judge, run_prompt,
-    call_llm, find_image,
+    judge_results, score_one, judge_one, rubrics_for_run,
+    _prompt_text_for_judge, run_prompt, call_llm, find_image,
 )
 from cupel.discovery import detect_hardware, discover_providers, detect_thermal
+from cupel.stats import (
+    score_pct_ci, check_pct_ci, run_group_key,
+    measured_noise_floor, rank_within_noise,
+)
+from cupel.schema import (
+    eval_set_meta, normalize_run, refresh_judges, record_judge_error,
+)
 
 import yaml
 
@@ -64,9 +71,19 @@ app = FastAPI(title="cupel", version=__version__)
 # Load .env on import (needed for uvicorn --reload mode)
 load_dotenv()
 
+# Only the local UI may call the API. A wildcard let any page the user happened to
+# be browsing reach this server — which can start jobs, rewrite config.yml, and
+# write files. (A wildcard origin with credentials is also rejected by browsers.)
+# CUPEL_ALLOWED_ORIGINS takes a comma-separated list for remote/proxied setups.
+_allowed_origins = [
+    o.strip() for o in os.environ.get("CUPEL_ALLOWED_ORIGINS", "").split(",") if o.strip()
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    # any port on loopback, so --port works without extra configuration
+    allow_origin_regex=r"http://(localhost|127\.0\.0\.1)(:\d+)?$",
+    allow_origins=_allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -171,12 +188,162 @@ def _result_files() -> list[Path]:
         reverse=True,
     )
 
+def _eval_set_label(data: dict) -> str:
+    """Name of the eval set a run used.
+
+    Older runs stored a bare name string (or nothing at all); newer ones store an
+    object carrying the path and content hash.
+    """
+    es = data.get("eval_set")
+    if isinstance(es, dict):
+        return es.get("name", "")
+    return es or ""
+
+
+def _provider_label(api_url: str, local_hw: dict) -> dict:
+    """Hardware/provider badge for a run: local machine specs, or the cloud host."""
+    if not api_url or "localhost" in api_url or "127.0.0.1" in api_url:
+        return local_hw
+    for host, name in (("openrouter.ai", "OpenRouter"),
+                       ("anthropic.com", "Anthropic"),
+                       ("openai.com", "OpenAI")):
+        if host in api_url:
+            return {"name": name, "memory": ""}
+    from urllib.parse import urlparse
+    return {"name": urlparse(api_url).hostname or api_url, "memory": ""}
+
+
+# A run scored on only a handful of its prompts is not comparable to a full run.
+# Scoring out of what was actually scored (rather than out of every prompt) is
+# correct per run, but with no floor a run that errored on 21 of 23 prompts and
+# happened to ace the other two would report 100% and sort to the top.
+MIN_COVERAGE = 0.8
+
+
+def _coverage(results: list) -> float:
+    scored = sum(1 for r in results if r.get("score") is not None)
+    return scored / len(results) if results else 0.0
+
+
+_hw_cache: dict = {}
+
+
+def _cached_hardware() -> dict:
+    """Machine specs, detected once per process.
+
+    `detect_hardware()` shells out to system_profiler / nvidia-smi with multi-second
+    timeouts. The hardware does not change while the server runs, so paying for it
+    on every leaderboard request is pure latency.
+    """
+    if "hw" not in _hw_cache:
+        _hw_cache["hw"] = detect_hardware()
+    return _hw_cache["hw"]
+
+
+# Leaderboard responses, keyed by the metric and the mtimes of the files they were
+# built from. The bootstrap intervals cost ~0.26s per request (110k resamples over
+# 55 runs) and recomputing them for an unchanged set of files buys nothing.
+_lb_cache: dict = {}
+
+
+def _results_signature() -> tuple:
+    """Identity of the current result set — any write invalidates the cache."""
+    try:
+        return tuple(sorted((p.name, p.stat().st_mtime_ns) for p in _result_files()))
+    except OSError:
+        return ()
+
+
+def _group_entries(entries: list) -> list:
+    """Collapse repeat runs of the same configuration into one row.
+
+    Two runs of the same model, eval set, judge and settings are two samples of one
+    thing, not two competitors. Listing them separately is how the leaderboard came
+    to show `Qwen3.6-27B-8bit` twice and `Qwen3.6-35B-A3B-bf16` three times, ranked
+    against each other on differences smaller than their own run-to-run spread.
+    """
+    groups: dict = {}
+    for e in entries:
+        groups.setdefault(e["_group_key"], []).append(e)
+
+    out = []
+    for members in groups.values():
+        members.sort(key=lambda e: e.get("timestamp", ""), reverse=True)
+        latest = members[0]
+
+        pooled = [s for e in members for s in e["_scores"]]
+        if not pooled:
+            continue
+        per_run_pct = [e["pct"] for e in members]
+        pct = 100.0 * sum(pooled) / (len(pooled) * 3)
+        ci_lo, ci_hi = score_pct_ci(pooled)
+
+        # the criteria vector, where the eval set provides one. A run has it only if
+        # every scored prompt does — a partial vector is not comparable to a full one.
+        pooled_check = [c for e in members for c in e.get("_check_scores", [])]
+        has_check = bool(pooled_check) and len(pooled_check) == len(pooled)
+        check_pct = check_lo = check_hi = None
+        if has_check:
+            check_pct = round(100.0 * sum(pooled_check) / len(pooled_check), 1)
+            lo, hi = check_pct_ci(pooled_check)
+            check_lo, check_hi = round(lo, 1), round(hi, 1)
+
+        # average each prompt's score across the runs, so the per-prompt ticks and
+        # the category breakdown describe the group rather than one arbitrary run
+        by_prompt: dict = {}
+        for e in members:
+            for sp in e.get("scores_by_prompt", []):
+                acc = by_prompt.setdefault(sp["id"], {
+                    "id": sp["id"], "category": sp.get("category", ""),
+                    "title": sp.get("title", ""), "_vals": [], "_el": [], "_tok": [],
+                })
+                if sp.get("score") is not None:
+                    acc["_vals"].append(sp["score"])
+                acc["_el"].append(sp.get("elapsed", 0))
+                acc["_tok"].append(sp.get("tokens", 0))
+
+        scores_by_prompt = []
+        for pid in sorted(by_prompt):
+            acc = by_prompt[pid]
+            vals = acc.pop("_vals"); el = acc.pop("_el"); tok = acc.pop("_tok")
+            acc["score"] = round(sum(vals) / len(vals), 2) if vals else None
+            acc["elapsed"] = round(sum(el) / len(el), 1) if el else 0
+            acc["tokens"] = round(sum(tok) / len(tok)) if tok else 0
+            scores_by_prompt.append(acc)
+
+        entry = dict(latest)
+        entry.pop("_group_key", None)
+        entry.pop("_scores", None)
+        entry.update({
+            "pct": round(pct, 1),
+            "ci_lo": round(ci_lo, 1),
+            "ci_hi": round(ci_hi, 1),
+            "has_check": has_check,
+            "check_pct": check_pct,
+            "check_ci_lo": check_lo,
+            "check_ci_hi": check_hi,
+            "total_score": sum(pooled),
+            "max_score": len(pooled) * 3,
+            "n_runs": len(members),
+            "per_run_pct": [round(p, 1) for p in per_run_pct],
+            "spread": round(max(per_run_pct) - min(per_run_pct), 1) if len(members) > 1 else 0.0,
+            "scores_by_prompt": scores_by_prompt,
+            "runs": [{"filename": m["filename"], "pct": m["pct"],
+                      "timestamp": m.get("timestamp", "")} for m in members],
+        })
+        out.append(entry)
+    return out
+
+
 def _summarize_result(path: Path, data: dict) -> dict:
     """Build summary metadata for a result file."""
     results = data.get("results", [])
     scored = [r for r in results if r.get("score") is not None]
     total_score = sum(r["score"] for r in scored)
-    max_score = len(results) * 3
+    # Denominator counts only what was actually scored. An errored or skipped
+    # prompt is missing data, not a zero — folding it in penalises a model for
+    # its provider's rate limiter.
+    max_score = len(scored) * 3
     total_elapsed = sum(r.get("elapsed_seconds", 0) for r in results)
     total_tokens = sum(r.get("completion_tokens", 0) for r in results)
 
@@ -184,11 +351,14 @@ def _summarize_result(path: Path, data: dict) -> dict:
         "filename": path.name,
         "model": data.get("model", "unknown"),
         "timestamp": data.get("timestamp", ""),
-        "eval_set": data.get("eval_set", ""),
+        "eval_set": _eval_set_label(data),
         "judge": data.get("judge", ""),
+        "judges": [j.get("model", "") for j in data.get("judges", []) if j.get("model")],
         "notes": data.get("notes", ""),
         "num_prompts": len(results),
         "num_scored": len(scored),
+        "n_errors": sum(1 for r in results if r.get("error")),
+        "n_skipped": sum(1 for r in results if r.get("skipped")),
         "total_score": total_score,
         "max_score": max_score,
         "pct": round(total_score / max_score * 100, 1) if max_score > 0 else 0,
@@ -430,7 +600,7 @@ async def get_version():
 
 @app.get("/api/hardware")
 async def get_hardware():
-    hw = await asyncio.to_thread(detect_hardware)
+    hw = await asyncio.to_thread(_cached_hardware)
     return hw
 
 @app.get("/api/thermal")
@@ -482,12 +652,22 @@ async def import_eval_set(request: Request):
         raise HTTPException(400, detail='Eval set must have a non-empty "name" field')
     if "prompts" not in data or not isinstance(data.get("prompts"), list):
         raise HTTPException(400, detail='Eval set must have a "prompts" array')
+    # Take only the basename. `es_dir / "../../x.json"` resolves outside the eval-set
+    # directory and writes anywhere the process can reach — verified exploitable.
+    safe_name = Path(filename).name
+    if not safe_name or not safe_name.endswith(".json"):
+        raise HTTPException(400, detail="Filename must be a plain *.json name")
+
     es_dir = Path.home() / ".cupel" / "eval-sets"
     es_dir.mkdir(parents=True, exist_ok=True)
-    dest = es_dir / filename
+    dest = (es_dir / safe_name).resolve()
+    # belt and braces: refuse anything that still escapes (symlinks, odd names)
+    if es_dir.resolve() not in dest.parents:
+        raise HTTPException(400, detail="Refusing to write outside the eval-sets directory")
+
     with open(dest, "w") as f:
         f.write(content)
-    return {"path": f"eval-sets/{filename}"}
+    return {"path": f"eval-sets/{safe_name}"}
 
 @app.get("/api/eval-set")
 async def get_eval_set(variant: str = None):
@@ -538,7 +718,7 @@ async def list_results():
     for path in _result_files():
         try:
             with open(path) as f:
-                data = json.load(f)
+                data = normalize_run(json.load(f))
             summary = _summarize_result(path, data)
             summary["tags"] = tags.get(path.name, [])
             summary["muted"] = path.name in hidden
@@ -549,8 +729,12 @@ async def list_results():
     return results
 
 @app.get("/api/results/leaderboard")
-async def get_leaderboard():
-    hw = await asyncio.to_thread(detect_hardware)
+async def get_leaderboard(metric: str = "auto"):
+    sig = (metric, _results_signature(), tuple(sorted(_load_hidden())))
+    if _lb_cache.get("sig") == sig:
+        return _lb_cache["payload"]
+
+    hw = await asyncio.to_thread(_cached_hardware)
     hidden = _load_hidden()
 
     # Collect all scored results — each result file is its own entry
@@ -576,36 +760,33 @@ async def get_leaderboard():
         user_models.add(model)
 
         total_score = sum(r["score"] for r in scored)
-        max_score = len(data["results"]) * 3
+        # Only scored prompts count toward the denominator — see _summarize_result.
+        max_score = len(scored) * 3
         total_elapsed = sum(r.get("elapsed_seconds", 0) for r in data["results"])
         total_tokens = sum(r.get("completion_tokens", 0) for r in data["results"])
         num_prompts = len(data["results"])
 
         # Use hardware stored at run time; fall back to detection for old files
         api_url = data.get("api_url", "")
-        if "hardware" in data:
-            entry_hw = data["hardware"]
-        else:
-            is_local = not api_url or "localhost" in api_url or "127.0.0.1" in api_url
-            if is_local:
-                entry_hw = hw
-            else:
-                if "openrouter.ai" in api_url:
-                    prov_name = "OpenRouter"
-                elif "anthropic.com" in api_url:
-                    prov_name = "Anthropic"
-                elif "openai.com" in api_url:
-                    prov_name = "OpenAI"
-                else:
-                    from urllib.parse import urlparse
-                    prov_name = urlparse(api_url).hostname or api_url
-                entry_hw = {"name": prov_name, "memory": ""}
+        entry_hw = data.get("hardware") or _provider_label(api_url, hw)
+
+        ci_lo, ci_hi = score_pct_ci([r["score"] for r in scored])
+        coverage = _coverage(data["results"])
 
         entries_list.append({
+            "_group_key": run_group_key(data),
+            "_scores": [r["score"] for r in scored],
+            "_check_scores": [r["check_score"] for r in scored if r.get("check_score") is not None],
             "model": model,
             "total_score": total_score,
             "max_score": max_score,
             "pct": round(total_score / max_score * 100, 1) if max_score > 0 else 0,
+            "ci_lo": round(ci_lo, 1),
+            "ci_hi": round(ci_hi, 1),
+            "coverage": round(coverage, 3),
+            "low_coverage": coverage < MIN_COVERAGE,
+            "n_errors": sum(1 for r in data["results"] if r.get("error")),
+            "n_skipped": sum(1 for r in data["results"] if r.get("skipped")),
             "scores_by_prompt": [
                 {
                     "id": r["id"],
@@ -640,34 +821,31 @@ async def get_leaderboard():
                     continue  # user data takes precedence
                 results = entry.get("results", [])
                 api_url = entry.get("api_url", "")
-                is_local = not api_url or "localhost" in api_url or "127.0.0.1" in api_url
-                if is_local:
-                    entry_hw = hw
-                else:
-                    if "openrouter.ai" in api_url:
-                        prov_name = "OpenRouter"
-                    elif "anthropic.com" in api_url:
-                        prov_name = "Anthropic"
-                    elif "openai.com" in api_url:
-                        prov_name = "OpenAI"
-                    else:
-                        from urllib.parse import urlparse
-                        prov_name = urlparse(api_url).hostname or api_url
-                    entry_hw = {"name": prov_name, "memory": ""}
+                entry_hw = _provider_label(api_url, hw)
                 scored = [r for r in results if r.get("score") is not None]
                 if not scored:
                     continue
                 total_score = sum(r["score"] for r in scored)
-                max_score = len(results) * 3
+                max_score = len(scored) * 3
                 total_elapsed = sum(r.get("elapsed_seconds", 0) for r in results)
                 total_tokens = sum(r.get("completion_tokens", 0) for r in results)
                 num_prompts = len(results)
+                ci_lo, ci_hi = score_pct_ci([r["score"] for r in scored])
 
                 entries_list.append({
+                    "_group_key": ("example", model),
+                    "_scores": [r["score"] for r in scored],
+                    "_check_scores": [r["check_score"] for r in scored if r.get("check_score") is not None],
+                    "coverage": round(_coverage(results), 3),
+                    "low_coverage": _coverage(results) < MIN_COVERAGE,
                     "model": model,
                     "total_score": total_score,
                     "max_score": max_score,
                     "pct": round(total_score / max_score * 100, 1) if max_score > 0 else 0,
+                    "ci_lo": round(ci_lo, 1),
+                    "ci_hi": round(ci_hi, 1),
+                    "n_errors": sum(1 for r in results if r.get("error")),
+                    "n_skipped": sum(1 for r in results if r.get("skipped")),
                     "scores_by_prompt": [
                         {
                             "id": r["id"],
@@ -695,7 +873,29 @@ async def get_leaderboard():
             log.warning("skipping corrupt example file: %s", e)
 
     # Sort by percentage descending
-    entries = sorted(entries_list, key=lambda x: x["pct"], reverse=True)
+    entries = _group_entries(entries_list)
+
+    # Rank on the criteria vector when every entry has one. Ranking a mix of
+    # criteria-scored and level-scored runs on one axis would compare two different
+    # measurements, so it falls back to 0-3 unless the whole board can use it.
+    use_check = bool(entries) and all(e.get("has_check") for e in entries)
+    if metric == "score":
+        use_check = False
+    elif metric == "check" and not use_check:
+        raise HTTPException(400, detail="not every run has criteria scores to rank on")
+
+    if use_check:
+        for e in entries:
+            e["pct"] = e["check_pct"]
+            e["ci_lo"], e["ci_hi"] = e["check_ci_lo"], e["check_ci_hi"]
+
+    # incomplete runs sort below complete ones regardless of percentage
+    entries.sort(key=lambda x: (not x.get("low_coverage", False), x["pct"]), reverse=True)
+
+    # Ties come from measured run-to-run variation, not a modelled interval: the same
+    # config run twice landed this far apart, so smaller gaps are not orderings.
+    noise = measured_noise_floor(e.get("per_run_pct", []) for e in entries)
+    rank_within_noise(entries, noise["floor"] if noise else None)
 
     # Collect unique prompts across all entries
     prompt_ids_seen = set()
@@ -707,8 +907,15 @@ async def get_leaderboard():
                 prompt_ids_seen.add(pid)
                 prompts_list.append({"id": pid, "category": sp.get("category", ""), "title": sp.get("title", "")})
 
-    max_score = entries[0]["max_score"] if entries else 0
-    return {"entries": entries, "prompts": prompts_list, "max_score": max_score}
+    # Denominators now vary per entry (a run with errors has fewer scored prompts),
+    # so the headline figure is the most any entry could have attained.
+    max_score = max((e["max_score"] for e in entries), default=0)
+    payload = {"entries": entries, "prompts": prompts_list, "max_score": max_score,
+               "metric": "check_score" if use_check else "score",
+               "check_available": bool(entries) and all(e.get("has_check") for e in entries),
+               "noise": noise}
+    _lb_cache["sig"], _lb_cache["payload"] = sig, payload
+    return payload
 
 @app.get("/api/results/{filename}")
 async def get_result(filename: str):
@@ -716,7 +923,9 @@ async def get_result(filename: str):
     if not path.exists() or not path.name.startswith("eval_"):
         raise HTTPException(status_code=404, detail="Result not found")
     with open(path) as f:
-        return json.load(f)
+        # normalise on read so the detail view sees `judgments` even for runs
+        # saved before judgments existed — the file itself is left alone
+        return normalize_run(json.load(f))
 
 @app.delete("/api/results/{filename}")
 async def delete_result(filename: str):
@@ -882,7 +1091,9 @@ async def _run_job(job: Job, body: dict):
             with open(es_path) as f:
                 eval_set = json.load(f)
         else:
+            es_path = _eval_set_path()
             eval_set = _read_eval_set()
+        es_meta = eval_set_meta(es_path, eval_set)
         if not eval_set.get("prompts"):
             raise FileNotFoundError("No eval set found \u2014 create one from the Author page or run 'cupel init'")
 
@@ -925,7 +1136,7 @@ async def _run_job(job: Job, body: dict):
         output_dir = resolve_path(cfg.get("output_dir", "./eval-results"))
         output_dir.mkdir(parents=True, exist_ok=True)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        hw = await asyncio.to_thread(detect_hardware)
+        hw = await asyncio.to_thread(_cached_hardware)
         thinking_budget = cfg.get("_thinking_budget")
         t_label = f"_think{thinking_budget}" if thinking_budget is not None else ""
         saved_files = []
@@ -970,6 +1181,10 @@ async def _run_job(job: Job, body: dict):
                     "model": model, "api_url": model_urls.get(model, ""),
                     "thinking_budget": thinking_budget,
                     "timestamp": timestamp,
+                    # identity of what was run, so re-judging and grouping can
+                    # match this run to the exact prompts and rubrics it used
+                    "eval_set": es_meta,
+                    "temperature": cfg.get("temperature"),
                     "notes": run_notes,
                     "hardware": hw,
                     "results": all_results[model],
@@ -984,36 +1199,18 @@ async def _run_job(job: Job, body: dict):
                         if job.cancelled:
                             break
                         pid = result["id"]
-                        has_response = result.get("response") or any(r for r in result.get("responses", []))
-                        if result.get("skipped") or result.get("error") or not has_response:
-                            _emit(model, pid, "skip")
-                            continue
                         _emit(model, pid, "judging")
-                        try:
-                            score, reason, criteria_results = await asyncio.to_thread(
-                                score_one, judge_url, judge_key, judge_model,
-                                prompt_by_id.get(pid, ""), rubric_by_id.get(pid, {}),
-                                result["response"], result.get("responses"),
-                            )
-                            if score is not None:
-                                result["score"] = score
-                                result["judge_reason"] = reason
-                                result["judge_model"] = judge_model
-                                if criteria_results is not None:
-                                    result["criteria_results"] = criteria_results
-                                _emit(model, pid, f"scored:{score}", result.get("elapsed_seconds", 0))
-                            else:
-                                log.warning("judge returned no score  model=%s prompt=#%d: %s", model, pid, reason[:100])
-                                result["judge_reason"] = reason
-                                _emit(model, pid, "error")
-                        except Exception as e:
-                            log.error("judge error  model=%s prompt=#%d: %s", model, pid, e)
-                            result["judge_reason"] = f"judge error: {e}"
-                            _emit(model, pid, "error")
+                        status, score = await asyncio.to_thread(
+                            judge_one, result, rubric_by_id.get(pid),
+                            prompt_by_id.get(pid, ""), judge_url, judge_key, judge_model,
+                        )
+                        if status == "scored":
+                            _emit(model, pid, f"scored:{score}", result.get("elapsed_seconds", 0))
+                        else:
+                            _emit(model, pid, status)
 
                     # Save scores back
-                    data["judge"] = judge_model
-                    data["judge_url"] = judge_url
+                    refresh_judges(data)
                     with open(out, "w") as f:
                         json.dump(data, f, indent=2)
 
@@ -1035,25 +1232,32 @@ async def _run_job(job: Job, body: dict):
             log.error("job %s failed: %s", job.id, e)
 
 async def _judge_job(job: Job, body: dict):
-    """Execute judging on existing result files."""
+    """Re-score existing result files, appending judgments rather than replacing."""
     try:
         files = body.get("files", [])
-        judge_model_override = body.get("judge_model")
+        model_urls_map = body.get("model_urls") or {}
+        replace = bool(body.get("replace"))
+
+        # accept a single judge or a list — scoring with several judges makes
+        # their disagreement measurable, which is the real diagnostic
+        judge_list = body.get("judges") or []
+        if not judge_list and body.get("judge_model"):
+            judge_list = [body["judge_model"]]
 
         cfg = _read_config()
-        eval_set = _read_eval_set()
-        rubric_by_id = {p["id"]: p.get("rubric", {}) for p in eval_set.get("prompts", [])}
-        prompt_by_id = {p["id"]: _prompt_text_for_judge(p) for p in eval_set.get("prompts", [])}
-
-        if judge_model_override:
-            judge_model = judge_model_override
-            # Try to get URL/key for this model from config
-            _, judge_url, judge_key = get_judge_config(cfg)
-        else:
-            judge_model, judge_url, judge_key = get_judge_config(cfg)
-
-        if not judge_model:
+        if not judge_list:
+            configured, _, _ = get_judge_config(cfg)
+            if configured:
+                judge_list = [configured]
+        if not judge_list:
             raise ValueError("No judge model configured. Set judge.model in config.yml.")
+
+        def _emit(model, prompt_id, status, elapsed=0):
+            job.progress.append({
+                "model": model, "prompt_id": prompt_id,
+                "status": status, "elapsed": elapsed,
+                "ts": datetime.now().isoformat(),
+            })
 
         # Load data files
         data_files = []
@@ -1066,22 +1270,41 @@ async def _judge_job(job: Job, body: dict):
             with open(p) as f:
                 data_files.append((str(p), json.load(f)))
 
-        def on_progress(model, prompt_id, status, elapsed):
-            job.progress.append({
-                "model": model,
-                "prompt_id": prompt_id,
-                "status": status,
-                "elapsed": elapsed,
-                "ts": datetime.now().isoformat(),
-            })
+        job.models = [d.get("model", "") for _, d in data_files]
 
-        await asyncio.to_thread(
-            judge_results, data_files, judge_model, judge_url, judge_key,
-            rubric_by_id, prompt_by_id, on_progress,
-        )
+        for idx, judge_model in enumerate(judge_list):
+            # `replace` clears prior judgments once, on the first judge — later
+            # judges in the same request must append or they would wipe each other
+            replace_this = replace and idx == 0
+            judge_url, judge_key = _resolve_provider(cfg, judge_model, model_urls_map)
+            log.info("job %s judging  judge=%s url=%s files=%d",
+                     job.id, judge_model, judge_url, len(data_files))
+
+            # Rubrics come from each run's own eval set, so a mixed selection of
+            # files scored against different sets is still judged correctly.
+            for fpath, data in data_files:
+                if job.cancelled:
+                    break
+                # no forced set: use what the run recorded, else identify it.
+                # Never silently substitute the currently-configured eval set.
+                rubric_by_id, prompt_by_id, _, warning = rubrics_for_run(data)
+                if not rubric_by_id:
+                    log.error("job %s  %s: %s", job.id, Path(fpath).name, warning)
+                    _emit(data.get("model", ""), 0, f"error:{warning}")
+                    continue
+                if warning:
+                    log.warning("job %s  %s: %s", job.id, Path(fpath).name, warning)
+                    _emit(data.get("model", ""), 0, f"warning:{warning}")
+
+                await asyncio.to_thread(
+                    judge_results, [(fpath, data)], judge_model, judge_url, judge_key,
+                    rubric_by_id, prompt_by_id, _emit, replace_this,
+                )
+            if job.cancelled:
+                break
 
         job.result_files = files
-        job.status = "complete"
+        job.status = "cancelled" if job.cancelled else "complete"
 
     except Exception as e:
         log.error("job %s judge failed: %s", job.id, e)
@@ -1329,8 +1552,13 @@ if UI_DIR.exists():
 # Start UI helper
 # ──────────────────────────────────────────────
 
-def _start_ui(port=8042):
-    """Start the web UI server."""
+def _start_ui(port=8042, host="127.0.0.1"):
+    """Start the web UI server.
+
+    Binds loopback by default. The server has no authentication and its API can
+    start jobs, rewrite config.yml, and read which API keys are set — on 0.0.0.0
+    that is reachable by anything on the network. Pass --host to opt out.
+    """
     import uvicorn
     import webbrowser
     import threading
@@ -1349,5 +1577,9 @@ def _start_ui(port=8042):
             print(f"  \u25cb {p['url']} \u2014 offline")
     print()
 
+    if host not in ("127.0.0.1", "localhost"):
+        print(f"  \u26a0 listening on {host} \u2014 the API is unauthenticated and reachable")
+        print(f"    by anything that can route to this machine\n")
+
     threading.Timer(1.0, lambda: webbrowser.open(f"http://localhost:{port}")).start()
-    uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")
+    uvicorn.run(app, host=host, port=port, log_level="info")

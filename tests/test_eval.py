@@ -76,4 +76,7 @@ def test_example_run_scores_in_range():
     data = json.loads(path.read_text())
     for model in data["models"]:
         for r in model["results"]:
+            # an unscored prompt is missing data, not a zero — skip, don't coerce
+            if r["score"] is None:
+                continue
             assert 0 <= r["score"] <= 3, f"score {r['score']} out of range for model {model['model']} prompt {r['id']}"

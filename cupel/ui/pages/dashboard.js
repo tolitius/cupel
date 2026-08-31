@@ -250,13 +250,15 @@ function buildRadarConfig(entries, radarModels, cats, catPrompts) {
   function computeCategoryScores(entry) {
     const scores = {};
     cats.forEach(cat => {
-      const cp = catPrompts[cat];
-      const maxCat = cp.length * 3;
-      const catScore = cp.reduce((acc, p) => {
-        const sp = (entry.scores_by_prompt || []).find(s => s.id === p.id);
-        return acc + (sp && sp.score != null ? sp.score : 0);
-      }, 0);
-      scores[cat] = maxCat > 0 ? Math.round(catScore / maxCat * 100) : 0;
+      // Score only the prompts this entry actually ran. Counting untested prompts
+      // as zeros made a model that skipped a category look like it failed it.
+      const scored = catPrompts[cat]
+        .map(p => (entry.scores_by_prompt || []).find(s => s.id === p.id))
+        .filter(sp => sp && sp.score != null);
+      const maxCat = scored.length * 3;
+      const catScore = scored.reduce((acc, sp) => acc + sp.score, 0);
+      // null (not 0) when untested — Chart.js leaves a gap rather than drawing a failure
+      scores[cat] = maxCat > 0 ? Math.round(catScore / maxCat * 100) : null;
     });
     return scores;
   }
@@ -338,6 +340,7 @@ function Dashboard({ providers, refreshProviders }) {
     const saved = localStorage.getItem('cupel:dash-show-notes');
     return saved !== null ? JSON.parse(saved) : false;
   });
+  const [metric, setMetric] = useState(() => localStorage.getItem('cupel:dash-metric') || 'auto');
   const [state, setState] = useState(null);
   const [sortCol, setSortCol] = useState('score');
   const [sortDir, setSortDir] = useState('desc');
@@ -365,7 +368,7 @@ function Dashboard({ providers, refreshProviders }) {
 
   useEffect(() => {
     Promise.all([
-      fetch('/api/results/leaderboard').then(r => r.json()),
+      fetch(`/api/results/leaderboard?metric=${metric}`).then(r => r.json()),
       fetch('/api/state').then(r => r.json()),
       fetch('/api/hardware').then(r => r.json()),
       fetch('/api/version').then(r => r.json()),
@@ -375,7 +378,7 @@ function Dashboard({ providers, refreshProviders }) {
       setHardware(hw);
       setVersion(ver.version);
     }).catch(console.error);
-  }, []);
+  }, [metric]);   // refetch when the scoring metric changes — the server ranks on it
 
   useEffect(() => {
     let interval = null;
@@ -482,8 +485,10 @@ function Dashboard({ providers, refreshProviders }) {
   if (textOnly) {
     entries = entries.map(e => {
       const textPrompts = (e.scores_by_prompt || []).filter(sp => sp.category !== 'multimodal');
-      const totalScore = textPrompts.reduce((sum, sp) => sum + (sp.score != null ? sp.score : 0), 0);
-      const maxS = textPrompts.length * 3;
+      // only scored prompts count — an errored prompt is missing data, not a zero
+      const scored = textPrompts.filter(sp => sp.score != null);
+      const totalScore = scored.reduce((sum, sp) => sum + sp.score, 0);
+      const maxS = scored.length * 3;
       return {
         ...e,
         scores_by_prompt: textPrompts,
@@ -513,12 +518,14 @@ function Dashboard({ providers, refreshProviders }) {
     });
   }
 
-  const baseline = entries.length >= 3 ? entries[2].total_score : (entries[entries.length - 1]?.total_score || 0);
+  // Compare percentages, not raw totals: a grouped row pools every run's scores, so
+  // an n=3 group carries ~3x the points of a single run and would always look ahead.
+  const baseline = entries.length >= 3 ? entries[2].pct : (entries[entries.length - 1]?.pct || 0);
 
   if (sortCol === 'delta') {
     entries.sort((a, b) => {
-      const da = a.total_score - baseline;
-      const db = b.total_score - baseline;
+      const da = a.pct - baseline;
+      const db = b.pct - baseline;
       return sortDir === 'asc' ? da - db : db - da;
     });
   }
@@ -600,8 +607,41 @@ function Dashboard({ providers, refreshProviders }) {
               onChange=${(e) => { setShowNotes(e.target.checked); localStorage.setItem('cupel:dash-show-notes', JSON.stringify(e.target.checked)); }} />
             notes
           </label>
+          ${leaderboard.check_available ? html`
+            <label class="show-ex" style="min-width:auto"
+                   title="Rank on the full criteria vector instead of the 0-3 collapse. The collapse merges models the criteria can still tell apart.">
+              <input type="checkbox" checked=${leaderboard.metric === 'check_score'}
+                onChange=${(e) => { const m = e.target.checked ? 'check' : 'score'; setMetric(m); localStorage.setItem('cupel:dash-metric', m); }} />
+              criteria detail
+            </label>
+          ` : null}
+          ${leaderboard.metric === 'check_score' ? html`
+            <span style="font-family:var(--font-data);font-size:11px;color:var(--accent)">scored on criteria vector</span>
+          ` : null}
         </div>
       </div>
+    </div>`;
+
+  // One measured statement for the whole board, in place of a modelled per-row
+  // interval: the same config run twice landed this far apart, so smaller gaps
+  // are not orderings. With nothing run twice there is no claim to make.
+  const noise = leaderboard.noise;
+  const noiseBanner = html`
+    <div style="padding:8px 20px;font-family:var(--font-data);font-size:12px;color:var(--text-3);border-bottom:1px solid var(--border-subtle)">
+      ${noise ? html`
+        <span>measured run-to-run noise:
+          <strong style="color:var(--text-2)">${noise.floor}pp</strong>
+          <span style="color:var(--text-3)"> (mean ${noise.mean}pp, from ${noise.n_pairs} repeat-run
+          pair${noise.n_pairs === 1 ? '' : 's'} across ${noise.n_configs}
+          model${noise.n_configs === 1 ? '' : 's'})</span>
+          \u2014 rows within ${noise.floor}pp of each other share a rank
+        </span>
+      ` : html`
+        <span>no model has been run twice, so run-to-run noise is unmeasured \u2014
+          ranks below are raw ordering, not evidence of a difference.
+          <span style="color:var(--text-2)">cupel run --repeat 3</span> measures it.
+        </span>
+      `}
     </div>`;
 
   const selfJudgeWarning = hasSelfJudged ? html`
@@ -683,23 +723,26 @@ function Dashboard({ providers, refreshProviders }) {
     const isWinner = i === 0;
     const isExample = entry.is_example;
     const pct = (entry.pct || 0).toFixed(1);
-    const delta = entry.total_score - baseline;
+    const delta = Math.round((entry.pct - baseline) * 10) / 10;
     const hw = entry.hardware;
     const hwStr = hw && hw.name ? `${hw.name}${hw.memory ? ' ' + hw.memory : ''}` : '';
 
     const ticks = (entry.scores_by_prompt || []).map(sp => {
-      const cls = sp.score != null ? `s${sp.score}` : 's0';
-      return html`<div class="${cls}"></div>`;
+      // grouped rows average each prompt across runs, so the score can be fractional
+      const cls = sp.score != null ? `s${Math.round(sp.score)}` : 's0';
+      return html`<div class="${cls}" title="#${sp.id}: ${sp.score != null ? sp.score : '—'}"></div>`;
     });
 
     return html`
       <tr class="${isWinner ? 'winner' : ''} ${isExample ? 'is-example' : ''} ${selectedModel === entry.model ? 'selected' : ''}"
           style="cursor:pointer;animation-delay:${(i * 0.04).toFixed(2)}s"
           onClick=${() => openModelDetail(entry)}>
-        <td class="td-rank">${i + 1}</td>
+        <td class="td-rank" title=${entry.tied ? 'tied — its interval overlaps the rank leader\'s' : ''}>
+          ${entry.rank != null ? entry.rank : i + 1}${entry.tied ? html`<span style="color:var(--text-3)">=</span>` : null}
+        </td>
         <td style="white-space:nowrap">
           <div class="td-model-name">${entry.model}${isExample ? html` <span class="ex-tag">example</span>` : null}</div>
-          <div class="td-model-meta">${entry.judge_model ? html`<span style="${entry.self_judged ? 'color:var(--warn)' : ''}">${entry.self_judged ? 'self-judged' : entry.judge_model}</span>` : null}${entry.judge_model && hwStr ? ' \u00b7 ' : ''}${hwStr}</div>
+          <div class="td-model-meta">${entry.judge_model ? html`<span style="${entry.self_judged ? 'color:var(--warn)' : ''}">${entry.self_judged ? 'self-judged' : entry.judge_model}</span>` : null}${entry.judge_model && hwStr ? ' \u00b7 ' : ''}${hwStr}${entry.n_runs > 1 ? html`<span title="mean of ${entry.n_runs} runs, spread ${entry.spread}pp"> \u00b7 n=${entry.n_runs}</span>` : null}</div>
           ${showNotes && entry.notes ? html`<div style="font-family:var(--font-data);font-size:11px;color:#ffb18d;font-style:italic">${entry.notes}</div>` : null}
         </td>
         <td class="td-bar">
@@ -710,7 +753,13 @@ function Dashboard({ providers, refreshProviders }) {
           </div>
         </td>
         <td class="td-pct">${pct}%</td>
-        <td class="td-score">${entry.total_score}<small>/${entry.max_score}</small></td>
+        <td class="td-score">
+          ${entry.total_score}<small>/${entry.max_score}</small>
+          ${entry.n_runs > 1 ? html`<small style="display:block;color:var(--text-3)">pooled over ${entry.n_runs}</small>` : null}
+          ${entry.low_coverage ? html`<small style="display:block;color:var(--warn, #c9a033)"
+            title="only ${Math.round((entry.coverage || 0) * 100)}% of prompts were scored — not comparable to a full run"
+            >⚠ ${Math.round((entry.coverage || 0) * 100)}% scored</small>` : null}
+        </td>
         <td class="td-speed">${(entry.tok_per_sec || 0).toFixed(0)} <small>tok/s</small></td>
         <td class="td-speed">${(entry.avg_time || 0).toFixed(1)}s</td>
         <td class="td-delta ${deltaClass(delta)}">${deltaStr(delta)}</td>
@@ -760,7 +809,6 @@ function Dashboard({ providers, refreshProviders }) {
         <tbody>
           ${cats.map(cat => {
             const cp = catPrompts[cat];
-            const maxCat = cp.length * 3;
             return html`<tr>
               <td><div class="cat-name">
                 <span class="cat-dot" style="background:${CAT_COLORS[cat] || 'var(--text-3)'}"></span>
@@ -768,11 +816,15 @@ function Dashboard({ providers, refreshProviders }) {
                 <span class="cat-n">${cp.length}p</span>
               </div></td>
               ${top6.map(entry => {
-                const catScore = cp.reduce((acc, p) => {
-                  const sp = (entry.scores_by_prompt || []).find(s => s.id === p.id);
-                  return acc + (sp && sp.score != null ? sp.score : 0);
-                }, 0);
-                const pctCat = maxCat > 0 ? catScore / maxCat * 100 : 0;
+                const scored = cp
+                  .map(p => (entry.scores_by_prompt || []).find(s => s.id === p.id))
+                  .filter(sp => sp && sp.score != null);
+                const maxCat = scored.length * 3;
+                if (maxCat === 0) {
+                  return html`<td class="cat-cell"><span class="cat-val" style="color:var(--text-3)">—</span></td>`;
+                }
+                const catScore = scored.reduce((acc, sp) => acc + sp.score, 0);
+                const pctCat = catScore / maxCat * 100;
                 const color = pctCat >= 75 ? 'var(--score-3-fg)' : pctCat >= 55 ? 'var(--score-2-fg)' : pctCat >= 35 ? 'var(--score-1-fg)' : 'var(--score-0-fg)';
                 return html`<td class="cat-cell">
                   <div class="cat-fill" style="background:${color};width:${pctCat.toFixed(0)}%"></div>
@@ -908,6 +960,7 @@ function Dashboard({ providers, refreshProviders }) {
         ${welcomeBanner}
         ${statsStrip}
         ${selfJudgeWarning}
+        ${noiseBanner}
         ${chartPanel}
         ${lb}
         ${catTable}

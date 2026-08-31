@@ -13,7 +13,10 @@ output_dir: ./eval-results
 
 # ── inference defaults ──
 
-# temperature: 0         # omit to use model/engine defaults
+# temperature: pinned to 0 by default so repeat runs are comparable.
+# Unpinned sampling made the same model disagree with itself on ~10% of prompts.
+# Set to null to use the model/engine default instead.
+temperature: 0
 max_tokens: 16384
 
 # thinking: controls <think> reasoning mode
