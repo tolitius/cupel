@@ -14,15 +14,16 @@ max_tokens: 16384
 generation_model: Qwen3.5-122B-A10B-4bit
 thinking: null
 judge:
-  model: claude-opus-4-6
+  model: claude-opus-5-5
 providers:
 - name: anthropic
   api_url: https://api.anthropic.com/v1/messages
   api_key_env: ANTHROPIC_API_KEY
   models:
-  - claude-opus-4-6
-  - claude-sonnet-4-6
   - claude-haiku-4-5
+  - claude-opus-5-5
+  - claude-sonnet-5-5
+  - claude-haiku-5-5
 - name: openrouter
   api_url: https://openrouter.ai/api/v1/chat/completions
   api_key_env: OPENROUTER_API_KEY

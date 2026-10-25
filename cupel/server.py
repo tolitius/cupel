@@ -481,6 +481,22 @@ async def check_env_var(key: str):
     reload_dotenv()
     return {"key": key, "set": bool(os.environ.get(key))}
 
+def _list_anthropic_models(api_url, api_key, timeout=30):
+    """List models from Anthropic's /v1/models endpoint, following pagination."""
+    import requests as req
+
+    base = api_url.split("/v1/")[0].rstrip("/")
+    headers = {"x-api-key": api_key, "anthropic-version": "2023-06-01", "User-Agent": "cupel/0.1"}
+    models, params = [], {"limit": 1000}
+    while True:
+        resp = req.get(base + "/v1/models", headers=headers, params=params, timeout=timeout)
+        resp.raise_for_status()
+        data = resp.json()
+        models.extend(data.get("data", []))
+        if not data.get("has_more") or not data.get("last_id"):
+            return models
+        params["after_id"] = data["last_id"]
+
 @app.post("/api/providers/test")
 async def test_provider(request: Request):
     """Test connectivity to a provider by fetching its model list."""
@@ -493,16 +509,16 @@ async def test_provider(request: Request):
     api_key = os.environ.get(api_key_env, "") if api_key_env else ""
 
     # Derive /models URL
-    if "anthropic.com" in api_url:
-        # Anthropic has no /models endpoint — just check the key is set
-        if api_key:
-            return {"ok": True, "models": 3, "detail": "key set (3 known models)"}
+    is_anthropic = "anthropic.com" in api_url
+    if is_anthropic and not api_key:
         return {"ok": False, "detail": f"{api_key_env} not set"}
 
     base = api_url.split("/chat/completions")[0].rstrip("/")
     models_url = base + "/models"
 
     def _test():
+        if is_anthropic:
+            return len(_list_anthropic_models(api_url, api_key, timeout=5))
         headers = {"HTTP-Referer": "https://github.com/tolitius/cupel", "X-OpenRouter-Title": "cupel", "User-Agent": "cupel/0.1"}
         if api_key:
             headers["Authorization"] = f"Bearer {api_key}"
@@ -541,13 +557,13 @@ async def fetch_provider_models(request: Request):
     if not api_key and api_key_env and not is_local:
         raise HTTPException(400, detail=f"{api_key_env} not set in environment")
 
-    # Anthropic — no listing API, return known models with pricing (per token, USD)
+    # Anthropic — discover models via GET /v1/models (newest first, no pricing)
     if "anthropic.com" in api_url:
-        return {"models": [
-            {"id": "claude-opus-4-6",    "pricing": {"prompt": "0.000015",  "completion": "0.000075"}},
-            {"id": "claude-sonnet-4-6",  "pricing": {"prompt": "0.000003",  "completion": "0.000015"}},
-            {"id": "claude-haiku-4-5",   "pricing": {"prompt": "0.0000008", "completion": "0.000004"}},
-        ]}
+        try:
+            models = await asyncio.to_thread(_list_anthropic_models, api_url, api_key)
+            return {"models": [{"id": m["id"]} for m in models if m.get("id")]}
+        except Exception as e:
+            raise HTTPException(502, detail=f"Failed to fetch models: {e}")
 
     # OpenAI-compatible APIs (OpenAI, OpenRouter, etc.) — call /models
     base = api_url.split("/chat/completions")[0].rstrip("/")

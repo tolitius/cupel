@@ -17,8 +17,7 @@ const KNOWN_PROVIDERS = [
   // Cloud API providers
   { name: 'anthropic', label: 'Anthropic', group: 'cloud',
     api_url: 'https://api.anthropic.com/v1/messages',
-    api_key_env: 'ANTHROPIC_API_KEY',
-    fallback_models: ['claude-opus-4-6', 'claude-sonnet-4-6', 'claude-haiku-4-5'] },
+    api_key_env: 'ANTHROPIC_API_KEY', fallback_models: [] },
   { name: 'openrouter', label: 'OpenRouter', group: 'cloud',
     api_url: 'https://openrouter.ai/api/v1/chat/completions',
     api_key_env: 'OPENROUTER_API_KEY',
