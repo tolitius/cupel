@@ -112,63 +112,108 @@ def detect_thermal():
         return None
 
 
-def discover_providers():
-    """Probe known ports for inference servers. Returns list of provider dicts."""
+PROBE_PORTS = [8000, 11434, 1234, 30000, 8080]
+MODELS_PATH = "/v1/models"
+
+
+def _parse_models(data):
+    """Model ids from a /v1/models body: OpenAI-style data[].id, else Ollama-style models[].model/name."""
+    if not isinstance(data, dict):
+        return []
+    ids = [m.get("id") for m in data.get("data") or [] if isinstance(m, dict)]
+    if not any(ids):
+        ids = [m.get("model") or m.get("name") for m in data.get("models") or [] if isinstance(m, dict)]
+    return list(dict.fromkeys(i for i in ids if i))
+
+
+def _error_message(body):
+    """Pull a human-readable message out of an error body (JSON or text)."""
+    try:
+        data = json.loads(body)
+        err = data.get("error", data) if isinstance(data, dict) else data
+        if isinstance(err, dict):
+            err = err.get("message") or err.get("detail") or ""
+        return str(err)[:120]
+    except Exception:
+        return body.decode("utf-8", "replace").strip()[:120] if isinstance(body, bytes) else ""
+
+
+def _request(url, api_key):
+    """GET url. Returns (http_code, body); raises on connection errors."""
     import urllib.request
     import urllib.error
-    import socket
-    from cupel.config import resolve_api_key_for_port
 
-    PROBE_PORTS = [
-        {"port": 8000,  "models_path": "/v1/models"},
-        {"port": 11434, "models_path": "/v1/models"},
-        {"port": 1234,  "models_path": "/v1/models"},
-        {"port": 30000, "models_path": "/v1/models"},
-        {"port": 8080,  "models_path": "/v1/models"},
-    ]
-
-    def _probe(host, port, models_path):
-        """Probe a single endpoint. Returns (status, models, auth_error)."""
-        api_key = resolve_api_key_for_port(port)
-        url = f"http://{host}:{port}{models_path}"
-        req = urllib.request.Request(url, method="GET")
-        has_key = bool(api_key and api_key != "no-key")
-        if has_key:
-            req.add_header("Authorization", f"Bearer {api_key}")
+    req = urllib.request.Request(url, method="GET")
+    if api_key:
+        req.add_header("Authorization", f"Bearer {api_key}")
+    try:
+        with urllib.request.urlopen(req, timeout=2) as resp:
+            return resp.status, resp.read()
+    except urllib.error.HTTPError as e:
         try:
-            resp = urllib.request.urlopen(req, timeout=2)
-            data = json.loads(resp.read())
-            models = [m["id"] for m in data.get("data", [])]
-            return "online", models, None
-        except urllib.error.HTTPError as e:
-            # Server responded (even with 401/403) — it's online
-            if e.code in (401, 403):
-                # Try to parse body for model list anyway
-                try:
-                    body = e.read()
-                    data = json.loads(body)
-                    models = [m["id"] for m in data.get("data", [])]
-                    if models:
-                        return "online", models, None
-                except Exception:
-                    pass
-                # No models from auth error
-                if has_key:
-                    return "online", [], "auth_failed"
-                else:
-                    return "online", [], "auth_required"
-            # Other HTTP errors — server is online
-            try:
-                body = e.read()
-                data = json.loads(body)
-                models = [m["id"] for m in data.get("data", [])]
-                return "online", models, None
-            except Exception:
-                return "online", [], None
-        except (urllib.error.URLError, socket.timeout, OSError):
-            return "offline", [], None
+            body = e.read()
         except Exception:
-            return "offline", [], None
+            body = b""
+        return e.code, body
+
+
+def _probe(host, port):
+    """Probe one endpoint. Returns a dict with status, models and, when relevant, auth_error / detail."""
+    from cupel.config import port_api_key
+
+    url = f"http://{host}:{port}{MODELS_PATH}"
+    # Only send the key meant for this port; LLM_API_KEY is tried only if the server asks for auth
+    port_key = port_api_key(port)
+    fallback_key = os.environ.get("LLM_API_KEY", "")
+    if fallback_key == "no-key":
+        fallback_key = ""
+    try:
+        code, body = _request(url, port_key)
+        used_key = bool(port_key)
+        if code in (401, 403) and not port_key and fallback_key:
+            code, body = _request(url, fallback_key)
+            used_key = True
+    except Exception:
+        return {"status": "offline", "models": []}
+
+    try:
+        models = _parse_models(json.loads(body))
+    except Exception:
+        models = []
+    if models:
+        return {"status": "online", "models": models}
+
+    if code == 503:
+        return {"status": "loading", "models": [],
+                "detail": _error_message(body) or "server is loading"}
+    if code in (401, 403):
+        return {"status": "online", "models": [],
+                "auth_error": "auth_failed" if used_key else "auth_required",
+                "detail": f"HTTP {code} from {MODELS_PATH}"}
+    if code == 200:
+        return {"status": "online", "models": [], "detail": "no models in response"}
+    msg = _error_message(body)
+    return {"status": "online", "models": [],
+            "detail": f"HTTP {code} from {MODELS_PATH}" + (f": {msg}" if msg else "")}
+
+
+def _probe_port(host, port):
+    """Probe host:port; for localhost also try 127.0.0.1, since localhost may resolve to ::1
+    where a different (or no) server listens. Returns a provider dict."""
+    hosts = [host] + (["127.0.0.1"] if host == "localhost" else [])
+    best = None
+    for h in hosts:
+        entry = {"url": f"http://{h}:{port}", "port": port, **_probe(h, port)}
+        if entry["models"]:
+            return entry
+        if best is None or (best["status"] == "offline" and entry["status"] != "offline"):
+            best = entry
+    return best
+
+
+def discover_providers():
+    """Probe known ports for inference servers. Returns list of provider dicts."""
+    from urllib.parse import urlparse
 
     results = []
     seen_ports = set()
@@ -177,39 +222,18 @@ def discover_providers():
     env_url = os.environ.get("LLM_API_URL", "")
     if env_url:
         try:
-            from urllib.parse import urlparse
             parsed = urlparse(env_url)
             port = parsed.port or 80
             host = parsed.hostname or "localhost"
-            if port not in seen_ports:
-                seen_ports.add(port)
-                status, models, auth_error = _probe(host, port, "/v1/models")
-                entry = {
-                    "url": f"http://{host}:{port}",
-                    "port": port,
-                    "status": status,
-                    "models": models,
-                }
-                if auth_error:
-                    entry["auth_error"] = auth_error
-                results.append(entry)
+            seen_ports.add(port)
+            results.append(_probe_port(host, port))
         except Exception:
             pass
 
-    for probe in PROBE_PORTS:
-        port = probe["port"]
+    for port in PROBE_PORTS:
         if port in seen_ports:
             continue
         seen_ports.add(port)
-        status, models, auth_error = _probe("localhost", port, probe["models_path"])
-        entry = {
-            "url": f"http://localhost:{port}",
-            "port": port,
-            "status": status,
-            "models": models,
-        }
-        if auth_error:
-            entry["auth_error"] = auth_error
-        results.append(entry)
+        results.append(_probe_port("localhost", port))
 
     return results

@@ -62,6 +62,12 @@ def resolve_api_key_for_port(port: int) -> str:
     return os.environ.get("LLM_API_KEY", "no-key")
 
 
+def port_api_key(port: int) -> str | None:
+    """Return the key set for this specific local provider port, without the LLM_API_KEY fallback."""
+    key_env = LOCAL_PROVIDER_KEYS.get(port)
+    return os.environ.get(key_env) or None if key_env else None
+
+
 def load_config(path: Path | None = None) -> tuple[dict, str | None]:
     candidates = [path] if path else [
         Path.home() / ".cupel" / "config.yml",

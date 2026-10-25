@@ -1587,7 +1587,11 @@ def _start_ui(port=8042, host="127.0.0.1"):
     for p in online:
         models = ", ".join(p["models"][:3])
         extra = f" +{len(p['models'])-3} more" if len(p["models"]) > 3 else ""
-        print(f"  \u25cf {p['url']} \u2014 {len(p['models'])} models")
+        detail = f" ({p['detail']})" if p.get("detail") and not p["models"] else ""
+        print(f"  \u25cf {p['url']} \u2014 {len(p['models'])} models{detail}")
+    for p in providers:
+        if p["status"] == "loading":
+            print(f"  \u25d0 {p['url']} \u2014 loading model")
     for p in providers:
         if p["status"] == "offline":
             print(f"  \u25cb {p['url']} \u2014 offline")

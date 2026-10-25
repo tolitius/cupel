@@ -212,6 +212,13 @@ function RunPage({ providers: initProviders }) {
     fetch('/api/providers').then(r => r.json()).then(setProviders).catch(() => {});
   }, []);
 
+  // While a server is still loading its model, re-probe until it is ready
+  useEffect(() => {
+    if (!providers.some(p => p.status === 'loading')) return;
+    const t = setTimeout(refreshProviders, 5000);
+    return () => clearTimeout(t);
+  }, [providers]);
+
   // Category group counts (only groups that have prompts)
   const groupCounts = {};
   CAT_GROUPS.forEach(g => {
@@ -787,8 +794,13 @@ function RunPage({ providers: initProviders }) {
               <span style="font-family:var(--font-data);font-size:14px;font-weight:600;color:${p.status === 'online' || p.source === 'external' ? 'var(--text)' : 'var(--text-3)'}">${info.name}</span>
               <span class="status-dot ${p.status === 'online' ? 'online' : ''}" style="${p.source === 'external' ? 'background:var(--text-2)' : p.status !== 'online' ? 'background:var(--text-3)' : ''}"></span>
               <span style="font-family:var(--font-data);font-size:13px;color:var(--text-2)">${p.url}</span>
-              ${(p.status === 'online' || p.source === 'external') ? html`
+              ${p.status === 'loading' ? html`
+                <span style="font-family:var(--font-data);font-size:13px;color:var(--warn)">loading model\u2026</span>
+              ` : (p.status === 'online' || p.source === 'external') ? html`
                 <span style="font-family:var(--font-data);font-size:13px;color:var(--text-3)">${(p.models || []).length} model${(p.models || []).length !== 1 ? 's' : ''}</span>
+              ` : null}
+              ${p.detail && !(p.models || []).length ? html`
+                <span style="font-family:var(--font-data);font-size:12px;color:var(--text-3)">${p.detail}</span>
               ` : null}
             </div>`;
         })}

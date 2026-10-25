@@ -144,6 +144,13 @@
 
       useEffect(() => { refreshProviders(); }, []);
 
+      // While a server is still loading its model, re-probe until it is ready
+      useEffect(() => {
+        if (!(providers || []).some(p => p.status === 'loading')) return;
+        const t = setTimeout(refreshProviders, 5000);
+        return () => clearTimeout(t);
+      }, [providers]);
+
       return html`
         <div class="shell">
           <${Topbar} page=${page} providers=${providers} />

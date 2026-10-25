@@ -903,6 +903,9 @@ function Dashboard({ providers, refreshProviders }) {
   // -- Welcome banner --
   const readyProviders = (providers || []).filter(p => p.status === 'online' && (p.models || []).length > 0);
   const blockedProviders = (providers || []).filter(p => p.status === 'online' && (p.models || []).length === 0 && p.auth_error);
+  // Reachable but not usable yet: still loading its model, or answered without a model list
+  const pendingProviders = (providers || []).filter(p => p.source === 'local' && (p.models || []).length === 0 && !p.auth_error
+    && (p.status === 'loading' || (p.status === 'online' && p.detail)));
   const PP_NAMES = { 8000: 'oMLX', 11434: 'Ollama', 1234: 'LM Studio', 30000: 'SGLang', 8080: 'llama.cpp' };
   const PP_KEYS = { 8000: 'OMLX_API_KEY', 11434: 'OLLAMA_API_KEY', 1234: 'LM_STUDIO_API_KEY', 30000: 'SGLANG_API_KEY', 8080: 'LLAMA_CPP_API_KEY' };
   const provName = (p) => {
@@ -937,7 +940,15 @@ function Dashboard({ providers, refreshProviders }) {
           })}
         </div>
       ` : null}
-      ${readyProviders.length === 0 && blockedProviders.length === 0 ? html`
+      ${pendingProviders.length > 0 ? html`
+        <div style="font-family:var(--font-data);font-size:13px;color:var(--warn);margin-bottom:10px">
+          ${pendingProviders.map(p => {
+            const port = parseInt((p.url || '').split(':').pop(), 10);
+            return html`<div>${provName(p)} on :${port} \u2014 ${p.status === 'loading' ? 'loading model\u2026' : html`no models: <span style="color:var(--text-2)">${p.detail}</span>`}</div>`;
+          })}
+        </div>
+      ` : null}
+      ${readyProviders.length === 0 && blockedProviders.length === 0 && pendingProviders.length === 0 ? html`
         <div style="font-family:var(--font-label);font-size:14px;color:var(--text-2);margin-bottom:10px">
           No local servers found. Start Ollama, oMLX, or LM Studio to bench local models.
         </div>
