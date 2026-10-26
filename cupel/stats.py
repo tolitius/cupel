@@ -332,11 +332,14 @@ def rank_within_noise(entries, floor):
         return entries
 
     rank = 0
-    leader_pct = None
+    leader = None
     for i, e in enumerate(entries):
-        if leader_pct is None or (leader_pct - e["pct"]) > floor:
+        # incomplete runs sort below complete ones; never tie across that boundary
+        if (leader is None
+                or bool(leader.get("low_coverage")) != bool(e.get("low_coverage"))
+                or (leader["pct"] - e["pct"]) > floor):
             rank = i + 1
-            leader_pct = e["pct"]
+            leader = e
         e["rank"] = rank
         e["tied"] = (rank != i + 1)
     return entries

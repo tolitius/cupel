@@ -235,3 +235,10 @@ def test_hardware_is_detected_once(monkeypatch):
     srv._cached_hardware(); srv._cached_hardware(); srv._cached_hardware()
     assert len(calls) == 1
     srv._hw_cache.clear()
+
+
+def test_incomplete_run_is_never_tied_with_a_complete_one():
+    # sorted as the server sorts: complete runs first, then incomplete
+    e = [{"pct": 90}, {"pct": 88}, {"pct": 60}, {"pct": 99, "low_coverage": True}]
+    rank_within_noise(e, 5.8)
+    assert [(x["rank"], x["tied"]) for x in e] == [(1, False), (1, True), (3, False), (4, False)]

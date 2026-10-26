@@ -46,7 +46,7 @@ function deltaClass(d) { return d > 0 ? 'up' : d < 0 ? 'down' : 'flat'; }
 
 // Sort columns config
 const SORT_COLS = [
-  { key: 'rank',  label: '#',     getter: (e, i) => i },
+  { key: 'rank',  label: '#',     getter: e => e.rank },
   { key: 'model', label: 'Model', getter: e => e.model.toLowerCase() },
   { key: 'score', label: 'Score', getter: e => e.pct },
   { key: 'pts',   label: 'Pts',   getter: e => e.total_score },
@@ -55,6 +55,28 @@ const SORT_COLS = [
   { key: 'speed', label: 'Speed', getter: e => e.tok_per_sec || 0 },
   { key: 'avg',   label: 'Avg',   getter: e => e.avg_time || 0 },
 ];
+
+// Rank the rows actually shown. The server ranks the whole board — examples, cloud
+// and local, all prompts — so once rows are filtered out or "text only" recomputes
+// pct, its ranks have gaps and run out of order. Mirrors stats.rank_within_noise:
+// incomplete runs sort below complete ones, and a gap within the measured noise
+// floor of the band leader is a tie, not an ordering.
+function rankWithinNoise(entries, floor) {
+  const ordered = [...entries].sort((a, b) =>
+    (!!a.low_coverage - !!b.low_coverage) || (b.pct - a.pct));
+  const ranks = new Map();
+  let rank = 0, leader = null;
+  ordered.forEach((e, i) => {
+    // an incomplete run is never tied with a complete one, whatever its pct
+    if (floor == null || leader == null || !!leader.low_coverage !== !!e.low_coverage
+        || (leader.pct - e.pct) > floor) {
+      rank = i + 1;
+      leader = e;
+    }
+    ranks.set(e, { rank, tied: rank !== i + 1 });
+  });
+  return entries.map(e => ({ ...e, ...ranks.get(e) }));
+}
 
 // ── Chart.js lazy loader ──
 let ChartJS = null;
@@ -439,7 +461,7 @@ function Dashboard({ providers, refreshProviders }) {
       setSortDir(d => d === 'desc' ? 'asc' : 'desc');
     } else {
       setSortCol(colKey);
-      setSortDir(colKey === 'model' ? 'asc' : 'desc');
+      setSortDir(colKey === 'model' || colKey === 'rank' ? 'asc' : 'desc');
     }
   }, [sortCol]);
 
@@ -498,6 +520,8 @@ function Dashboard({ providers, refreshProviders }) {
       };
     });
   }
+
+  entries = rankWithinNoise(entries, leaderboard.noise ? leaderboard.noise.floor : null);
 
   const judgeModel = (entries.length > 0 && entries[0].judge_model) ? entries[0].judge_model : 'self-judged';
   const hardwareStr = hardware ? `${hardware.name || ''} ${hardware.memory || ''}`.trim() : '';
