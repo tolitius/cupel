@@ -261,10 +261,14 @@ def apply_consensus(result: dict) -> dict:
 
 
 def add_judgment(result: dict, judgment: dict, replace: bool = False) -> dict:
-    """Append a judgment to a result and refresh the mirror.
+    """Add a judgment to a result and refresh the mirror.
 
-    `replace` restores the old destructive behaviour for callers that explicitly
-    ask for it — re-scoring with the same judge after fixing a rubric, say.
+    Judgments from other judges are kept. A judge's new judgment supersedes its
+    own earlier one: re-judging with the same judge (after fixing the judge, the
+    rubric, or just to refresh) is that judge's current opinion, and keeping the
+    old copy would count one judge twice in the median.
+
+    `replace` discards every prior judgment, from all judges.
     """
     # Safety net: a caller that skipped normalise_run would otherwise silently
     # drop the existing judgment, which is the exact bug this module removes.
@@ -273,6 +277,8 @@ def add_judgment(result: dict, judgment: dict, replace: bool = False) -> dict:
     if replace:
         result["judgments"] = [judgment]
     else:
+        result["judgments"] = [j for j in result["judgments"]
+                               if j.get("judge_model") != judgment.get("judge_model")]
         result["judgments"].append(judgment)
     return apply_consensus(result)
 

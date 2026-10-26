@@ -347,3 +347,18 @@ def test_judge_one_exception_is_recorded_not_raised(monkeypatch):
 ])
 def test_rubric_is_empty(rubric, expected):
     assert ev.rubric_is_empty(rubric) is expected
+
+
+def test_rejudging_with_the_same_judge_supersedes_its_old_judgment(legacy_run, monkeypatch):
+    monkeypatch.setattr(ev, "score_one", _fake_judge({"second-judge": 1}))
+    data = normalize_run(json.loads(legacy_run.read_text()))
+    ev.judge_results([(str(legacy_run), data)], "second-judge", "u", "k", RUBRICS, PROMPTS)
+
+    # same judge again, different opinion — it replaces, it does not stack
+    monkeypatch.setattr(ev, "score_one", _fake_judge({"second-judge": 0}))
+    data = normalize_run(json.loads(legacy_run.read_text()))
+    ev.judge_results([(str(legacy_run), data)], "second-judge", "u", "k", RUBRICS, PROMPTS)
+
+    r1 = json.loads(legacy_run.read_text())["results"][0]
+    assert [j["judge_model"] for j in r1["judgments"]] == ["original-judge", "second-judge"]
+    assert r1["judgments"][1]["score"] == 0

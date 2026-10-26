@@ -29,6 +29,7 @@ function ResultsPage({ providers }) {
   const [judging, setJudging] = useState(null);   // {done, total, errors} while a job runs
   const [judgeError, setJudgeError] = useState('');
   const [judgeWarning, setJudgeWarning] = useState('');
+  const [replaceAll, setReplaceAll] = useState(false);   // discard every prior judgment
 
   const loadResults = () =>
     fetch('/api/results').then(r => r.json()).then(setResults).catch(() => {});
@@ -57,7 +58,7 @@ function ResultsPage({ providers }) {
     setJudging({ done: 0, total, errors: 0 });
 
     const openFile = selectedFile;
-    startJudgeJob({ files: picked, judgeModel, modelUrls })
+    startJudgeJob({ files: picked, judgeModel, modelUrls, replace: replaceAll })
       .then(({ id }) => {
         connectSSE(id, (ev) => {
           if (ev.type === 'complete' || ev.type === 'cancelled') {
@@ -256,8 +257,15 @@ function ResultsPage({ providers }) {
           </button>
           <button class="btn-ghost" style="padding:4px 10px;font-size:13px"
                   onClick=${() => setPicked([])}>clear</button>
-          <span style="font-family:var(--font-data);font-size:12px;color:var(--text-3)">
-            every judgment is kept — the shown score becomes the median, so it can go down
+          <label style="font-family:var(--font-data);font-size:13px;color:var(--text-2);display:flex;align-items:center;gap:4px;cursor:pointer">
+            <input type="checkbox" checked=${replaceAll} disabled=${!!judging}
+                   onChange=${(e) => setReplaceAll(e.target.checked)} />
+            replace all judgments
+          </label>
+          <span style="font-family:var(--font-data);font-size:12px;color:${replaceAll ? 'var(--bad, #c45050)' : 'var(--text-3)'}">
+            ${replaceAll
+              ? 'every existing judgment, from every judge, is discarded'
+              : "this judge's earlier judgment is replaced, other judges are kept — the shown score is their median"}
           </span>
           ${judgeWarning ? html`
             <div style="width:100%;font-family:var(--font-data);font-size:13px;color:var(--warn, #c9a033)">
