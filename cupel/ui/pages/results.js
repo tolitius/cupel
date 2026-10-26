@@ -300,7 +300,12 @@ function ResultsPage({ providers }) {
                     <td style="padding:8px;font-family:var(--font-data);font-size:14px;color:var(--text);font-weight:600">${r.model}${r.muted ? html` <span style="font-size:12px;font-weight:400;color:var(--text-3)">muted</span>` : null}${r.notes ? html`<div style="font-size:12px;font-weight:400;color:var(--text-3);font-style:italic">${r.notes}</div>` : null}</td>
                     <td style="padding:8px;font-family:var(--font-data);font-size:14px;color:var(--text-2)">${r.timestamp || ''}</td>
                     <td style="padding:8px;font-family:var(--font-data);font-size:15px;color:var(--text);text-align:right;font-weight:700">${r.total_score != null ? `${r.total_score}/${r.max_score}` : '\u2014'}</td>
-                    <td style="padding:8px;text-align:center;font-family:var(--font-data);font-size:14px;color:${r.num_scored === r.num_prompts ? 'var(--accent)' : 'var(--text-3)'}">${r.num_scored}/${r.num_prompts}</td>
+                    <td style="padding:8px;text-align:center;font-family:var(--font-data);font-size:14px;color:${r.num_scored === r.num_prompts ? 'var(--accent)' : 'var(--text-3)'}">${r.num_scored}/${r.num_prompts}${r.n_judge_failed > 0 ? html`
+                      <div style="font-size:12px;color:var(--bad);cursor:pointer;white-space:nowrap"
+                           title=${r.last_judge_error}
+                           onClick=${(e) => { e.stopPropagation(); if (!picked.includes(r.filename)) togglePick(r.filename); }}>
+                        judge failed · re-judge
+                      </div>` : null}</td>
                     <td style="padding:8px;font-family:var(--font-data);font-size:13px;color:var(--text-2)">
                       ${(r.judges && r.judges.length) ? r.judges.map((j, i) => html`
                         <div style="${i > 0 ? 'color:var(--text-3)' : ''}">${j}</div>`) : (r.judge || '\u2014')}

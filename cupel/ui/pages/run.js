@@ -86,6 +86,7 @@ function RunPage({ providers: initProviders }) {
   const [jobId, setJobId] = useState(null);
   const [grid, setGrid] = useState({});
   const [complete, setComplete] = useState(null);
+  const [judgeStopped, setJudgeStopped] = useState('');   // judge rejected every request
   const [running, setRunning] = useState(false);
   const [hardware, setHardware] = useState(null);
   const [thermalState, setThermalState] = useState(null);
@@ -299,6 +300,10 @@ function RunPage({ providers: initProviders }) {
       return;
     }
     if (data.type === 'error') { setRunning(false); setComplete({ error: data.error || data.message || 'Run failed' }); return; }
+    if (typeof data.status === 'string' && data.status.startsWith('error:')) {
+      setJudgeStopped(data.status.slice('error:'.length));
+      return;
+    }
     const key = `${data.model}::${data.prompt_id}`;
     setBenchModels(prev => prev.includes(data.model) ? prev : [...prev, data.model]);
     if (data.status === 'running') setGrid(prev => ({ ...prev, [key]: { status: 'running' } }));
@@ -328,7 +333,7 @@ function RunPage({ providers: initProviders }) {
     const promptIds = filteredPrompts.map(p => p.id);
     setBenchPrompts(filteredPrompts);
     setBenchModels(models);
-    setGrid({}); setComplete(null); setRunning(true); setDetailPid(null); setDetailData(null); setLastRun(null);
+    setGrid({}); setComplete(null); setJudgeStopped(''); setRunning(true); setDetailPid(null); setDetailData(null); setLastRun(null);
     // Note: selected, selectedCats, judgeModel are intentionally NOT cleared
     fetch('/api/jobs', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -504,6 +509,11 @@ function RunPage({ providers: initProviders }) {
 
       ${complete && complete.error ? html`
         <div style="padding:0 20px 14px;font-family:var(--font-data);font-size:14px;color:var(--bad)">${complete.error}</div>
+      ` : null}
+      ${judgeStopped ? html`
+        <div style="padding:0 20px 14px;font-family:var(--font-data);font-size:14px;color:var(--bad)">
+          ${judgeStopped} <a href="#/results" style="color:var(--accent)">Results →</a>
+        </div>
       ` : null}
 
       <!-- Progress grid -->

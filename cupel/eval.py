@@ -85,6 +85,25 @@ def call_llm_multi(
     return _call_llm_raw(api_url, api_key, model, messages, temperature, max_tokens, thinking_budget)
 
 
+# Claude 4.7 and later reject sampling params outright ("`temperature` is
+# deprecated for this model") — sending the judge's temperature=0 to Opus 5.5 failed
+# every judgment of a two-hour run. 4.6 and older still accept it, so they keep it.
+_NO_SAMPLING_PATTERN = re.compile(
+    r"claude-(opus-4-[78]|opus-5|sonnet-5|fable|mythos)", re.IGNORECASE)
+_SAMPLING_PARAMS = ("temperature", "top_p", "top_k")
+# models learned at runtime to reject sampling, so a model newer than the pattern
+# costs one retried request rather than a whole failed run
+_NO_SAMPLING_MODELS: set[str] = set()
+
+
+def _anthropic_rejects_sampling(model: str) -> bool:
+    return model in _NO_SAMPLING_MODELS or bool(_NO_SAMPLING_PATTERN.search(model or ""))
+
+
+def _is_sampling_rejection(status_code: int, message: str) -> bool:
+    return status_code == 400 and any(p in (message or "") for p in _SAMPLING_PARAMS)
+
+
 def _call_llm_raw(
     api_url: str, api_key: str, model: str, messages: list[dict],
     temperature: float | None = None, max_tokens: int = 16384,
@@ -120,6 +139,9 @@ def _call_llm_raw(
         # Anthropic doesn't accept these fields
         body.pop("thinking_budget", None)
         body.pop("think", None)
+        if _anthropic_rejects_sampling(model):
+            for p in _SAMPLING_PARAMS:
+                body.pop(p, None)
         # Anthropic requires system messages as a top-level field, not in messages
         if body["messages"] and body["messages"][0].get("role") == "system":
             body["system"] = body["messages"][0]["content"]
@@ -160,11 +182,20 @@ def _call_llm_raw(
             err_msg = err_body.get("error", {})
             if isinstance(err_msg, dict):
                 err_msg = err_msg.get("message", resp.text[:200])
-            log.error("llm HTTP %d  model=%s: %s", resp.status_code, model, err_msg)
-            raise RuntimeError(f"HTTP {resp.status_code}: {err_msg}")
-        except (ValueError, KeyError):
+        except (ValueError, KeyError, AttributeError):
             log.error("llm HTTP %d  model=%s: %s", resp.status_code, model, resp.text[:200])
             resp.raise_for_status()
+            raise RuntimeError(f"HTTP {resp.status_code}: {resp.text[:200]}")
+        if (is_anthropic and model not in _NO_SAMPLING_MODELS
+                and any(p in body for p in _SAMPLING_PARAMS)
+                and _is_sampling_rejection(resp.status_code, str(err_msg))):
+            log.warning("llm %s rejects sampling params — retrying without them: %s",
+                        model, err_msg)
+            _NO_SAMPLING_MODELS.add(model)
+            return _call_llm_raw(api_url, api_key, model, messages, None,
+                                 max_tokens, thinking_budget)
+        log.error("llm HTTP %d  model=%s: %s", resp.status_code, model, err_msg)
+        raise RuntimeError(f"HTTP {resp.status_code}: {err_msg}")
 
     log.info("llm done  model=%s elapsed=%.1fs", model, elapsed)
 
@@ -887,8 +918,41 @@ def judge_one(result, rubric, prompt_text, judge_url, judge_key, judge_model,
     return "scored", score
 
 
+class JudgeCircuit:
+    """Stop a judge pass whose judge rejects every request.
+
+    A judge that 4xx's on the request itself (a removed parameter, a bad model id,
+    a wrong key) fails identically on every prompt. Without this the pass ground
+    through all of them — a whole run's worth of identical errors — before anyone
+    saw why. Trips when the first `limit` judged results all fail with the same
+    HTTP 4xx; any successful score disarms it for the rest of the pass.
+    """
+
+    def __init__(self, limit: int = 3):
+        self.limit = limit
+        self.errors: list[str] = []
+        self.armed = True
+        self.reason: str | None = None
+
+    def record(self, result: dict, status: str) -> str | None:
+        """Note one judge_one outcome. Returns the reason once tripped, else None."""
+        if self.reason or not self.armed or status == "skip":
+            return self.reason
+        if status == "scored":
+            self.armed = False
+            return None
+        err = ((result.get("judge_errors") or [{}])[-1].get("error") or "")
+        if not re.search(r"HTTP 4\d\d", err):
+            self.armed = False
+            return None
+        self.errors.append(err)
+        if len(self.errors) >= self.limit and len(set(self.errors)) == 1:
+            self.reason = err.removeprefix("judge error: ")
+        return self.reason
+
+
 def judge_results(data_files, judge_model, judge_url, judge_key, rubric_by_id,
-                  prompt_by_id, on_progress=None, replace=False):
+                  prompt_by_id, on_progress=None, replace=False, circuit=None):
     """Score existing result files. Importable from server.py.
 
     Judgments are appended, so re-judging with a different judge keeps the earlier
@@ -904,16 +968,24 @@ def judge_results(data_files, judge_model, judge_url, judge_key, rubric_by_id,
         prompt_by_id: {prompt_id: prompt_text}
         on_progress: callback(model, prompt_id, status, elapsed) for SSE
         replace: discard existing judgments instead of appending
+        circuit: a JudgeCircuit to share across calls (the server judges one file
+            per call); a fresh one is used when omitted
 
     Returns:
         list of updated (filepath, data_dict) tuples
     """
+    circuit = circuit or JudgeCircuit()
     for fpath, data in data_files:
         model = data["model"]
         # bring pre-judgments files into the current shape before adding to them
         normalize_run(data)
         for result in data["results"]:
             pid = result["id"]
+            if circuit.reason:
+                # stopped: leave the rest unjudged, ready for a re-judge
+                if on_progress:
+                    on_progress(model, pid, "skip", 0)
+                continue
             if on_progress:
                 on_progress(model, pid, "judging", 0)
 
@@ -926,6 +998,11 @@ def judge_results(data_files, judge_model, judge_url, judge_key, rubric_by_id,
                     on_progress(model, pid, f"scored:{score}", result.get("elapsed_seconds", ""))
                 else:
                     on_progress(model, pid, status, 0)
+            if circuit.record(result, status):
+                log.error("judge %s rejects requests, stopping: %s", judge_model, circuit.reason)
+                if on_progress:
+                    on_progress(model, 0, f"error:judge {judge_model} rejects requests: "
+                                          f"{circuit.reason}", 0)
 
         # Save scores back — refresh_judges rebuilds the run-level judge list and
         # points the legacy judge/judge_url fields at the most recent judge.

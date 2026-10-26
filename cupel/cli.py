@@ -266,7 +266,7 @@ def cmd_judge(args):
     from cupel.config import (
         load_config, load_dotenv, get_judge_config, resolve_path,
     )
-    from cupel.eval import judge_one, rubrics_for_run
+    from cupel.eval import judge_one, rubrics_for_run, JudgeCircuit
     from cupel.schema import (
         normalize_run, refresh_judges, judge_models,
     )
@@ -374,6 +374,7 @@ def cmd_judge(args):
             print(f"\n  judge {judge_idx + 1}/{len(judge_list)}: {judge_model} @ {host}\n")
         # Score each result
         score_state = {}
+        circuit = JudgeCircuit()
 
         if HAS_RICH:
             from rich.console import Console
@@ -390,6 +391,9 @@ def cmd_judge(args):
                     rubric_by_id, prompt_by_id, _ = rubrics[fpath]
                     for result in data["results"]:
                         pid = result["id"]
+                        if circuit.reason:
+                            score_state[(model, pid)] = "skip"
+                            continue
                         score_state[(model, pid)] = "judging"
                         live.update(build_table(prompts, models, score_state,
                                                 title_prefix="⚖", api_url=judge_url, phase="judge"))
@@ -402,6 +406,7 @@ def cmd_judge(args):
                             (score, result.get("elapsed_seconds", "")) if status == "scored"
                             else status
                         )
+                        circuit.record(result, status)
                         live.update(build_table(prompts, models, score_state,
                                                 title_prefix="⚖", api_url=judge_url, phase="judge"))
 
@@ -415,6 +420,8 @@ def cmd_judge(args):
                 print(f"\n  Judging: {model}")
                 for result in data["results"]:
                     pid = result["id"]
+                    if circuit.reason:
+                        break
                     print(f"    [{pid:2d}] {result['title'][:35]}...", end=" ", flush=True)
                     status, score = judge_one(
                         result, rubric_by_id.get(pid), prompt_by_id.get(pid, ""),
@@ -427,6 +434,11 @@ def cmd_judge(args):
                     else:
                         last = (result.get("judge_errors") or [{}])[-1].get("error", "")
                         print(f"→ ERROR: {last[:60]}")
+                    circuit.record(result, status)
+
+        if circuit.reason:
+            print(f"\n  ✘ judge {judge_model} rejects requests, stopped: {circuit.reason}")
+            print(f"    responses are untouched — fix the judge and re-run `cupel judge` on these files\n")
 
     # Save scores back into the result files
     for fpath, data in all_data:

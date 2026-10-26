@@ -20,7 +20,7 @@ from cupel.config import (
     get_providers_config, resolve_api_key_for_port, resolve_path,
 )
 from cupel.eval import (
-    judge_results, score_one, judge_one, rubrics_for_run,
+    judge_results, score_one, judge_one, rubrics_for_run, JudgeCircuit,
     _prompt_text_for_judge, run_prompt, call_llm, find_image,
 )
 from cupel.discovery import detect_hardware, discover_providers, detect_thermal
@@ -346,6 +346,15 @@ def _summarize_result(path: Path, data: dict) -> dict:
     max_score = len(scored) * 3
     total_elapsed = sum(r.get("elapsed_seconds", 0) for r in results)
     total_tokens = sum(r.get("completion_tokens", 0) for r in results)
+    # answered but never scored because every judge attempt failed — these read as
+    # 0/N otherwise, with nothing saying a re-judge would recover them
+    judge_failed = [r for r in results
+                    if r.get("judge_errors") and r.get("score") is None
+                    and not r.get("judgments") and not r.get("error")]
+    last_judge_error = max(
+        (e for r in judge_failed for e in r["judge_errors"]),
+        key=lambda e: e.get("at", ""), default={},
+    ).get("error", "")
 
     return {
         "filename": path.name,
@@ -359,6 +368,8 @@ def _summarize_result(path: Path, data: dict) -> dict:
         "num_scored": len(scored),
         "n_errors": sum(1 for r in results if r.get("error")),
         "n_skipped": sum(1 for r in results if r.get("skipped")),
+        "n_judge_failed": len(judge_failed),
+        "last_judge_error": last_judge_error,
         "total_score": total_score,
         "max_score": max_score,
         "pct": round(total_score / max_score * 100, 1) if max_score > 0 else 0,
@@ -1167,6 +1178,9 @@ async def _run_job(job: Job, body: dict):
         if not judge_model and models:
             judge_model = models[0]
             judge_url, judge_key = _resolve_provider(cfg, judge_model, model_urls_map)
+        # shared across models: once the judge proves it rejects every request,
+        # later models are saved unjudged rather than failing prompt by prompt
+        circuit = JudgeCircuit()
 
         # ── Run prompts, save, and judge each model ──
         model_urls = {}
@@ -1210,9 +1224,9 @@ async def _run_job(job: Job, body: dict):
                 saved_files.append(str(out))
 
                 # Judge this model's results
-                if judge_model:
+                if judge_model and not circuit.reason:
                     for result in data["results"]:
-                        if job.cancelled:
+                        if job.cancelled or circuit.reason:
                             break
                         pid = result["id"]
                         _emit(model, pid, "judging")
@@ -1224,6 +1238,12 @@ async def _run_job(job: Job, body: dict):
                             _emit(model, pid, f"scored:{score}", result.get("elapsed_seconds", 0))
                         else:
                             _emit(model, pid, status)
+                        if circuit.record(result, status):
+                            log.error("job %s judge %s rejects requests, stopping: %s",
+                                      job.id, judge_model, circuit.reason)
+                            _emit(model, 0, f"error:judge {judge_model} rejects requests: "
+                                            f"{circuit.reason} — results saved, re-judge "
+                                            f"from the Results page")
 
                     # Save scores back
                     refresh_judges(data)
@@ -1293,6 +1313,9 @@ async def _judge_job(job: Job, body: dict):
             # judges in the same request must append or they would wipe each other
             replace_this = replace and idx == 0
             judge_url, judge_key = _resolve_provider(cfg, judge_model, model_urls_map)
+            # one per judge, shared across files: a judge that rejects every request
+            # stops after a few prompts instead of failing each file in turn
+            circuit = JudgeCircuit()
             log.info("job %s judging  judge=%s url=%s files=%d",
                      job.id, judge_model, judge_url, len(data_files))
 
@@ -1314,8 +1337,10 @@ async def _judge_job(job: Job, body: dict):
 
                 await asyncio.to_thread(
                     judge_results, [(fpath, data)], judge_model, judge_url, judge_key,
-                    rubric_by_id, prompt_by_id, _emit, replace_this,
+                    rubric_by_id, prompt_by_id, _emit, replace_this, circuit,
                 )
+                if circuit.reason:
+                    break
             if job.cancelled:
                 break
 
