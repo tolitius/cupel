@@ -916,8 +916,10 @@ async def get_leaderboard(metric: str = "auto"):
             e["pct"] = e["check_pct"]
             e["ci_lo"], e["ci_hi"] = e["check_ci_lo"], e["check_ci_hi"]
 
-    # incomplete runs sort below complete ones regardless of percentage
-    entries.sort(key=lambda x: (not x.get("low_coverage", False), x["pct"]), reverse=True)
+    # incomplete runs sort below complete ones regardless of percentage; equal
+    # percentages go to the faster model, matching the dashboard's tiebreak
+    entries.sort(key=lambda x: (not x.get("low_coverage", False), x["pct"],
+                                x.get("tok_per_sec") or 0), reverse=True)
 
     # Ties come from measured run-to-run variation, not a modelled interval: the same
     # config run twice landed this far apart, so smaller gaps are not orderings.

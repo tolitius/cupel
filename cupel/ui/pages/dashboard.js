@@ -46,11 +46,14 @@ function deltaClass(d) { return d > 0 ? 'up' : d < 0 ? 'down' : 'flat'; }
 
 // Sort columns config
 const SORT_COLS = [
-  { key: 'rank',  label: '#',     getter: e => e.rank },
+  // rank, score and % all follow the ranking order (`standing`, see rankWithinNoise)
+  // so the # column always reads down in sequence; score and % are negated so
+  // their natural "desc" puts the best row first
+  { key: 'rank',  label: '#',     getter: e => e.standing },
   { key: 'model', label: 'Model', getter: e => e.model.toLowerCase() },
-  { key: 'score', label: 'Score', getter: e => e.pct },
+  { key: 'score', label: 'Score', getter: e => -e.standing },
   { key: 'pts',   label: 'Pts',   getter: e => e.total_score },
-  { key: 'pct',   label: '%',     getter: e => e.pct },
+  { key: 'pct',   label: '%',     getter: e => -e.standing },
   { key: 'delta', label: '\u0394',getter: null },
   { key: 'speed', label: 'Speed', getter: e => e.tok_per_sec || 0 },
   { key: 'avg',   label: 'Avg',   getter: e => e.avg_time || 0 },
@@ -60,10 +63,13 @@ const SORT_COLS = [
 // and local, all prompts — so once rows are filtered out or "text only" recomputes
 // pct, its ranks have gaps and run out of order. Mirrors stats.rank_within_noise:
 // incomplete runs sort below complete ones, and a gap within the measured noise
-// floor of the band leader is a tie, not an ordering.
+// floor of the band leader is a tie, not an ordering. Equal pct is broken by
+// speed (faster first), the same tiebreak the table sort uses. `standing` is the
+// row's position in this order, which the score / % / # sorts follow.
 function rankWithinNoise(entries, floor) {
   const ordered = [...entries].sort((a, b) =>
-    (!!a.low_coverage - !!b.low_coverage) || (b.pct - a.pct));
+    (!!a.low_coverage - !!b.low_coverage) || (b.pct - a.pct)
+    || ((b.tok_per_sec || 0) - (a.tok_per_sec || 0)));
   const ranks = new Map();
   let rank = 0, leader = null;
   ordered.forEach((e, i) => {
@@ -73,7 +79,7 @@ function rankWithinNoise(entries, floor) {
       rank = i + 1;
       leader = e;
     }
-    ranks.set(e, { rank, tied: rank !== i + 1 });
+    ranks.set(e, { rank, tied: rank !== i + 1, standing: i + 1 });
   });
   return entries.map(e => ({ ...e, ...ranks.get(e) }));
 }
