@@ -472,11 +472,10 @@ function Board({ data }) {
     ${rows.length === 0 ? html`<div class="empty">no models match “${search}”</div>` : null}
     </div>`;
 
-  const repeats = data.entries.some(e => e.n_runs > 1);
   const footnote = html`
     <div class="footnote">
-      <div>${repeats ? 'some models averaged over repeat runs' : 'single runs'} · ${nPrompts} prompts · judge: ${data.judge || 'unknown'} · published ${fmtDate(data.published_at)}</div>
-      <div>Scores are self-reported by the publisher on a private eval set. Made with <a href=${REPO_URL}>cupel</a>.</div>
+      <div>judge: ${data.judge || 'unknown'} · published ${fmtDate(data.published_at)}</div>
+      <div>scores are self-reported by the publisher on a private eval set. made with <a href=${REPO_URL}>cupel</a>.</div>
     </div>`;
 
   return html`
