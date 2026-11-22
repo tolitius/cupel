@@ -77,3 +77,12 @@ judge:
 #     api_key_env: OPENAI_API_KEY
 #     models:
 #       - gpt-4o
+
+# ─── Publish to cupel.run/bench (optional) ───
+# A cupel checkout whose site/ deploys to cupel.run. When set, the dashboard shows a
+# Publish button: it previews a sanitized snapshot, writes site/bench/bench.json and
+# makes one git commit. It never pushes — review with `git show`, then push yourself.
+#
+# publish:
+#   repo: ~/src/cupel
+#   handle: your-handle

@@ -4,9 +4,13 @@ import asyncio
 import json
 import logging
 import os
+import re
+import secrets
+import subprocess
+import time
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request
@@ -24,6 +28,10 @@ from cupel.eval import (
     _prompt_text_for_judge, run_prompt, call_llm, find_image,
 )
 from cupel.discovery import detect_hardware, discover_providers, detect_thermal
+from cupel.board import MIN_COVERAGE, provider_label, coverage
+from cupel.publish import (
+    PublishError, SNAPSHOT_RELPATH, build_snapshot, validate_snapshot, write_snapshot,
+)
 from cupel.stats import (
     score_pct_ci, check_pct_ci, run_group_key,
     measured_noise_floor, rank_within_noise,
@@ -200,29 +208,8 @@ def _eval_set_label(data: dict) -> str:
     return es or ""
 
 
-def _provider_label(api_url: str, local_hw: dict) -> dict:
-    """Hardware/provider badge for a run: local machine specs, or the cloud host."""
-    if not api_url or "localhost" in api_url or "127.0.0.1" in api_url:
-        return local_hw
-    for host, name in (("openrouter.ai", "OpenRouter"),
-                       ("anthropic.com", "Anthropic"),
-                       ("openai.com", "OpenAI")):
-        if host in api_url:
-            return {"name": name, "memory": ""}
-    from urllib.parse import urlparse
-    return {"name": urlparse(api_url).hostname or api_url, "memory": ""}
-
-
-# A run scored on only a handful of its prompts is not comparable to a full run.
-# Scoring out of what was actually scored (rather than out of every prompt) is
-# correct per run, but with no floor a run that errored on 21 of 23 prompts and
-# happened to ace the other two would report 100% and sort to the top.
-MIN_COVERAGE = 0.8
-
-
-def _coverage(results: list) -> float:
-    scored = sum(1 for r in results if r.get("score") is not None)
-    return scored / len(results) if results else 0.0
+_provider_label = provider_label
+_coverage = coverage
 
 
 _hw_cache: dict = {}
@@ -1583,6 +1570,197 @@ async def generate_prompt(request: Request):
     except Exception as e:
         log.error("generate-prompt failed: %s", e)
         raise HTTPException(status_code=500, detail=str(e))
+
+# ──────────────────────────────────────────────
+# Publish to cupel.run/bench
+#
+# Preview builds and validates a sanitized snapshot and parks it under a token;
+# commit writes it into the configured cupel checkout and makes one dedicated git
+# commit. Pushing stays manual. These endpoints write files and run git, so they
+# refuse any non-loopback Origin (CORS does not stop a cross-site simple POST)
+# and anything that is not JSON.
+# ──────────────────────────────────────────────
+
+_LOOPBACK_ORIGIN = re.compile(r"http://(localhost|127\.0\.0\.1)(:\d+)?")
+_PUBLISH_TTL = 600            # seconds a previewed snapshot stays committable
+_publish_tokens: dict = {}    # token -> {"snapshot", "expires"}
+_publish_lock = asyncio.Lock()
+
+
+def _publish_guard(request: Request, need_json: bool = True):
+    origin = request.headers.get("origin")
+    if origin is not None and not _LOOPBACK_ORIGIN.fullmatch(origin):
+        raise HTTPException(403, detail="publishing is only allowed from the local dashboard")
+    if need_json:
+        ctype = request.headers.get("content-type", "").split(";")[0].strip().lower()
+        if ctype != "application/json":
+            raise HTTPException(415, detail="expected application/json")
+
+
+def _git(repo: Path, *args: str) -> subprocess.CompletedProcess:
+    return subprocess.run(["git", *args], cwd=repo, check=False,
+                          capture_output=True, text=True, timeout=30)
+
+
+def _publish_config() -> tuple[dict | None, str]:
+    """({"repo", "handle"}, "") when publishing is set up, else (None, reason)."""
+    cfg, cfg_path = load_config()
+    pub = cfg.get("publish")
+    if not pub:
+        return None, "publish.repo is not set in ~/.cupel/config.yml"
+    if not isinstance(pub, dict) or not pub.get("repo"):
+        return None, "publish.repo is not set in ~/.cupel/config.yml"
+    repo = resolve_path(str(Path(str(pub["repo"])).expanduser()), cfg_path)
+    if not (repo / "site").is_dir():
+        return None, f"{repo} has no site/ directory"
+    try:
+        inside = _git(repo, "rev-parse", "--is-inside-work-tree")
+    except (OSError, subprocess.TimeoutExpired) as e:
+        return None, f"git is not available: {e}"
+    if inside.returncode != 0 or inside.stdout.strip() != "true":
+        return None, f"{repo} is not a git work tree"
+    return {"repo": repo, "handle": str(pub.get("handle") or "")}, ""
+
+
+def _publish_eval_sets() -> list:
+    """Eval sets that legacy runs can be identified against. Never the sample run."""
+    paths = sorted((Path.home() / ".cupel" / "eval-sets").glob("*.json"))
+    paths += [_eval_set_path(), DATA_DIR / "starter-eval-set.json"]
+    out, seen = [], set()
+    for p in paths:
+        try:
+            key = p.resolve()
+            if key in seen or not p.is_file() or p.name == "example-run.json":
+                continue
+            seen.add(key)
+            with open(p) as f:
+                data = json.load(f)
+        except (OSError, json.JSONDecodeError):
+            continue
+        if isinstance(data, dict) and data.get("prompts"):
+            out.append((p, data))
+    return out
+
+
+async def _json_body(request: Request) -> dict:
+    try:
+        body = await request.json()
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        raise HTTPException(400, detail="invalid JSON body")
+    if not isinstance(body, dict):
+        raise HTTPException(400, detail="expected a JSON object")
+    return body
+
+
+def _purge_publish_tokens():
+    now = time.monotonic()
+    for t in [t for t, v in _publish_tokens.items() if v["expires"] < now]:
+        _publish_tokens.pop(t, None)
+
+
+@app.get("/api/publish/status")
+async def publish_status(request: Request):
+    _publish_guard(request, need_json=False)
+    conf, reason = await asyncio.to_thread(_publish_config)
+    if conf is None:
+        return {"enabled": False, "repo": None, "handle": None, "reason": reason}
+    return {"enabled": True, "repo": str(conf["repo"]), "handle": conf["handle"], "reason": ""}
+
+
+@app.post("/api/publish/preview")
+async def publish_preview(request: Request):
+    _publish_guard(request)
+    conf, reason = await asyncio.to_thread(_publish_config)
+    if conf is None:
+        raise HTTPException(404, detail=reason)
+    body = await _json_body(request)
+
+    def build():
+        files = _result_files()
+        eval_sets = _publish_eval_sets()
+        snapshot, summary = build_snapshot(
+            files, _load_hidden(), body.get("view"), body.get("frozen"),
+            conf["handle"], __version__, datetime.now(timezone.utc),
+            eval_sets, _cached_hardware())
+        return snapshot, summary, validate_snapshot(snapshot, files, Path.home(), eval_sets)
+
+    try:
+        snapshot, summary, errors = await asyncio.to_thread(build)
+    except PublishError as e:
+        raise HTTPException(422, detail=[str(e)])
+    if errors:
+        raise HTTPException(422, detail=errors)
+
+    _purge_publish_tokens()
+    token = secrets.token_urlsafe(24)
+    _publish_tokens[token] = {"snapshot": snapshot, "expires": time.monotonic() + _PUBLISH_TTL}
+    return {"token": token, "snapshot": snapshot, "summary": summary}
+
+
+def _restore_snapshot_file(repo: Path, target: Path):
+    """Put bench.json back the way HEAD has it after a failed commit."""
+    rel = str(SNAPSHOT_RELPATH)
+    _git(repo, "reset", "-q", "--", rel)
+    if _git(repo, "cat-file", "-e", f"HEAD:{rel}").returncode == 0:
+        _git(repo, "checkout", "-q", "HEAD", "--", rel)
+    else:
+        target.unlink(missing_ok=True)
+
+
+def _commit_snapshot(repo: Path, snapshot: dict) -> dict:
+    rel = str(SNAPSHOT_RELPATH)
+    if _git(repo, "rev-parse", "--is-inside-work-tree").stdout.strip() != "true":
+        raise HTTPException(409, detail=f"{repo} is not a git work tree")
+    if _git(repo, "status", "--porcelain", "--", rel).stdout.strip():
+        raise HTTPException(409, detail=f"{rel} has uncommitted changes in {repo}; "
+                                        "commit or discard them first")
+    if _git(repo, "diff", "--cached", "--quiet").returncode != 0:
+        raise HTTPException(409, detail=f"the index in {repo} has staged changes; "
+                                        "commit or unstage them so the publish commit holds only bench.json")
+
+    target = write_snapshot(snapshot, repo)
+    if not _git(repo, "status", "--porcelain", "--", rel).stdout.strip():
+        return {"committed": False, "reason": "no changes", "path": str(target)}
+
+    n_models = len(snapshot["entries"])
+    n_prompts = snapshot["eval_set"]["n_prompts"]
+    message = f"bench: publish {n_models} models, {n_prompts} prompts"
+    add = _git(repo, "add", "--", rel)
+    commit = _git(repo, "commit", "-q", "-m", message, "--", rel) if add.returncode == 0 else add
+    if commit.returncode != 0:
+        _restore_snapshot_file(repo, target)
+        raise HTTPException(409, detail="git commit failed: " + (commit.stderr or commit.stdout).strip())
+    sha = _git(repo, "rev-parse", "HEAD").stdout.strip()
+    return {"committed": True, "sha": sha, "message": message, "path": str(target)}
+
+
+@app.post("/api/publish/commit")
+async def publish_commit(request: Request):
+    _publish_guard(request)
+    conf, reason = await asyncio.to_thread(_publish_config)
+    if conf is None:
+        raise HTTPException(404, detail=reason)
+    body = await _json_body(request)
+
+    _purge_publish_tokens()
+    held = _publish_tokens.get(body.get("token")) if isinstance(body.get("token"), str) else None
+    if held is None:
+        raise HTTPException(410, detail="preview expired or unknown; preview again")
+    snapshot = held["snapshot"]
+
+    async with _publish_lock:
+        errors = await asyncio.to_thread(
+            validate_snapshot, snapshot, _result_files(), Path.home(), _publish_eval_sets())
+        if errors:
+            raise HTTPException(422, detail=errors)
+        try:
+            result = await asyncio.to_thread(_commit_snapshot, conf["repo"], snapshot)
+        except subprocess.TimeoutExpired:
+            raise HTTPException(409, detail="git timed out")
+    if result.get("committed"):
+        _publish_tokens.pop(body["token"], None)
+    return result
+
 
 # ──────────────────────────────────────────────
 # Mount static files LAST (catch-all)

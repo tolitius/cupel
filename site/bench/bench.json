@@ -1,0 +1,1289 @@
+{
+  "schema_version": 1,
+  "handle": "example",
+  "published_at": "2026-11-22T18:00:00Z",
+  "cupel_version": "0.1.94",
+  "eval_set": {
+    "hash": "sha256:fafafafafafafafa",
+    "n_prompts": 16,
+    "n_text_prompts": 14
+  },
+  "judge": "fixture-judge-1",
+  "view": {
+    "text": false,
+    "metric": "score",
+    "chart_tab": null,
+    "sort_col": "score",
+    "sort_dir": "desc"
+  },
+  "frozen": {
+    "local": false,
+    "notes": true
+  },
+  "check_available": true,
+  "categories": [
+    "fixture_code",
+    "fixture_format",
+    "fixture_knowledge",
+    "fixture_reasoning",
+    "multimodal"
+  ],
+  "prompts": [
+    {
+      "id": 1,
+      "category": "fixture_code"
+    },
+    {
+      "id": 2,
+      "category": "fixture_code"
+    },
+    {
+      "id": 3,
+      "category": "fixture_code"
+    },
+    {
+      "id": 4,
+      "category": "fixture_code"
+    },
+    {
+      "id": 5,
+      "category": "fixture_reasoning"
+    },
+    {
+      "id": 6,
+      "category": "fixture_reasoning"
+    },
+    {
+      "id": 7,
+      "category": "fixture_reasoning"
+    },
+    {
+      "id": 8,
+      "category": "fixture_reasoning"
+    },
+    {
+      "id": 9,
+      "category": "fixture_knowledge"
+    },
+    {
+      "id": 10,
+      "category": "fixture_knowledge"
+    },
+    {
+      "id": 11,
+      "category": "fixture_knowledge"
+    },
+    {
+      "id": 12,
+      "category": "fixture_format"
+    },
+    {
+      "id": 13,
+      "category": "fixture_format"
+    },
+    {
+      "id": 14,
+      "category": "fixture_format"
+    },
+    {
+      "id": 15,
+      "category": "multimodal"
+    },
+    {
+      "id": 16,
+      "category": "multimodal"
+    }
+  ],
+  "variants_meta": {
+    "all": {
+      "score": {
+        "noise_floor": 18.8,
+        "max_pts": 144
+      },
+      "check": {
+        "noise_floor": 15.0
+      }
+    },
+    "text": {
+      "score": {
+        "noise_floor": 14.3,
+        "max_pts": 126
+      },
+      "check": {
+        "noise_floor": 13.9
+      }
+    }
+  },
+  "entries": [
+    {
+      "model": "example-cloud-model",
+      "judge_model": "fixture-judge-1",
+      "self_judged": false,
+      "hardware": {
+        "name": "OpenRouter",
+        "memory": ""
+      },
+      "is_local": false,
+      "n_runs": 1,
+      "tok_per_sec": 72.0,
+      "avg_time": 27.8,
+      "per_prompt": [
+        {
+          "id": 1,
+          "category": "fixture_code",
+          "score": 1.0
+        },
+        {
+          "id": 2,
+          "category": "fixture_code",
+          "score": 2.0
+        },
+        {
+          "id": 3,
+          "category": "fixture_code",
+          "score": 3.0
+        },
+        {
+          "id": 4,
+          "category": "fixture_code",
+          "score": 3.0
+        },
+        {
+          "id": 5,
+          "category": "fixture_reasoning",
+          "score": 3.0
+        },
+        {
+          "id": 6,
+          "category": "fixture_reasoning",
+          "score": 3.0
+        },
+        {
+          "id": 7,
+          "category": "fixture_reasoning",
+          "score": 3.0
+        },
+        {
+          "id": 8,
+          "category": "fixture_reasoning",
+          "score": 3.0
+        },
+        {
+          "id": 9,
+          "category": "fixture_knowledge",
+          "score": 3.0
+        },
+        {
+          "id": 10,
+          "category": "fixture_knowledge",
+          "score": 3.0
+        },
+        {
+          "id": 11,
+          "category": "fixture_knowledge",
+          "score": 3.0
+        },
+        {
+          "id": 12,
+          "category": "fixture_format",
+          "score": 3.0
+        },
+        {
+          "id": 13,
+          "category": "fixture_format",
+          "score": 2.0
+        },
+        {
+          "id": 14,
+          "category": "fixture_format",
+          "score": 2.0
+        },
+        {
+          "id": 15,
+          "category": "multimodal",
+          "score": 3.0
+        },
+        {
+          "id": 16,
+          "category": "multimodal",
+          "score": 3.0
+        }
+      ],
+      "variants": {
+        "all": {
+          "score": {
+            "pts": 43,
+            "max": 48,
+            "pct": 89.6,
+            "ci_lo": 79.2,
+            "ci_hi": 97.9,
+            "rank": 1,
+            "tied": false,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "fixture_code": 75,
+              "fixture_format": 78,
+              "fixture_knowledge": 100,
+              "fixture_reasoning": 100,
+              "multimodal": 100
+            }
+          },
+          "check": {
+            "pct": 88.1,
+            "ci_lo": 77.7,
+            "ci_hi": 95.9,
+            "rank": 1,
+            "tied": false,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "fixture_code": 72,
+              "fixture_format": 86,
+              "fixture_knowledge": 96,
+              "fixture_reasoning": 97,
+              "multimodal": 95
+            }
+          }
+        },
+        "text": {
+          "score": {
+            "pts": 37,
+            "max": 42,
+            "pct": 88.1,
+            "ci_lo": 76.2,
+            "ci_hi": 97.6,
+            "rank": 1,
+            "tied": false,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "fixture_code": 75,
+              "fixture_format": 78,
+              "fixture_knowledge": 100,
+              "fixture_reasoning": 100
+            }
+          },
+          "check": {
+            "pct": 87.2,
+            "ci_lo": 75.8,
+            "ci_hi": 96.2,
+            "rank": 1,
+            "tied": false,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "fixture_code": 72,
+              "fixture_format": 86,
+              "fixture_knowledge": 96,
+              "fixture_reasoning": 97
+            }
+          }
+        }
+      }
+    },
+    {
+      "model": "example-model-alpha-70b",
+      "judge_model": "fixture-judge-1",
+      "self_judged": false,
+      "hardware": {
+        "name": "Fixture Chip B",
+        "memory": "128 GB"
+      },
+      "is_local": true,
+      "n_runs": 3,
+      "tok_per_sec": 18.1,
+      "avg_time": 110.5,
+      "per_prompt": [
+        {
+          "id": 1,
+          "category": "fixture_code",
+          "score": 2.0
+        },
+        {
+          "id": 2,
+          "category": "fixture_code",
+          "score": 2.67
+        },
+        {
+          "id": 3,
+          "category": "fixture_code",
+          "score": 3.0
+        },
+        {
+          "id": 4,
+          "category": "fixture_code",
+          "score": 3.0
+        },
+        {
+          "id": 5,
+          "category": "fixture_reasoning",
+          "score": 2.0
+        },
+        {
+          "id": 6,
+          "category": "fixture_reasoning",
+          "score": 2.67
+        },
+        {
+          "id": 7,
+          "category": "fixture_reasoning",
+          "score": 2.67
+        },
+        {
+          "id": 8,
+          "category": "fixture_reasoning",
+          "score": 1.67
+        },
+        {
+          "id": 9,
+          "category": "fixture_knowledge",
+          "score": 2.0
+        },
+        {
+          "id": 10,
+          "category": "fixture_knowledge",
+          "score": 2.0
+        },
+        {
+          "id": 11,
+          "category": "fixture_knowledge",
+          "score": 2.67
+        },
+        {
+          "id": 12,
+          "category": "fixture_format",
+          "score": 2.67
+        },
+        {
+          "id": 13,
+          "category": "fixture_format",
+          "score": 2.67
+        },
+        {
+          "id": 14,
+          "category": "fixture_format",
+          "score": 2.67
+        },
+        {
+          "id": 15,
+          "category": "multimodal",
+          "score": 2.33
+        },
+        {
+          "id": 16,
+          "category": "multimodal",
+          "score": 2.0
+        }
+      ],
+      "variants": {
+        "all": {
+          "score": {
+            "pts": 116,
+            "max": 144,
+            "pct": 80.6,
+            "ci_lo": 73.6,
+            "ci_hi": 87.5,
+            "rank": 1,
+            "tied": true,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "fixture_code": 89,
+              "fixture_format": 89,
+              "fixture_knowledge": 74,
+              "fixture_reasoning": 75,
+              "multimodal": 72
+            }
+          },
+          "check": {
+            "pct": 77.5,
+            "ci_lo": 70.7,
+            "ci_hi": 84.4,
+            "rank": 1,
+            "tied": true,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "fixture_code": 84,
+              "fixture_format": 85,
+              "fixture_knowledge": 69,
+              "fixture_reasoning": 74,
+              "multimodal": 74
+            }
+          }
+        },
+        "text": {
+          "score": {
+            "pts": 103,
+            "max": 126,
+            "pct": 81.7,
+            "ci_lo": 73.8,
+            "ci_hi": 88.1,
+            "rank": 1,
+            "tied": true,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "fixture_code": 89,
+              "fixture_format": 89,
+              "fixture_knowledge": 74,
+              "fixture_reasoning": 75
+            }
+          },
+          "check": {
+            "pct": 78.1,
+            "ci_lo": 70.1,
+            "ci_hi": 84.8,
+            "rank": 1,
+            "tied": true,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "fixture_code": 84,
+              "fixture_format": 85,
+              "fixture_knowledge": 69,
+              "fixture_reasoning": 74
+            }
+          }
+        }
+      }
+    },
+    {
+      "model": "example-model-beta-32b",
+      "judge_model": "fixture-judge-1",
+      "self_judged": false,
+      "hardware": {
+        "name": "Fixture Chip A",
+        "memory": "64 GB"
+      },
+      "is_local": true,
+      "n_runs": 1,
+      "tok_per_sec": 41.0,
+      "avg_time": 48.8,
+      "notes": "fixture note: 4-bit quant",
+      "per_prompt": [
+        {
+          "id": 1,
+          "category": "fixture_code",
+          "score": 1.0
+        },
+        {
+          "id": 2,
+          "category": "fixture_code",
+          "score": 3.0
+        },
+        {
+          "id": 3,
+          "category": "fixture_code",
+          "score": 3.0
+        },
+        {
+          "id": 4,
+          "category": "fixture_code",
+          "score": 2.0
+        },
+        {
+          "id": 5,
+          "category": "fixture_reasoning",
+          "score": 2.0
+        },
+        {
+          "id": 6,
+          "category": "fixture_reasoning",
+          "score": 2.0
+        },
+        {
+          "id": 7,
+          "category": "fixture_reasoning",
+          "score": 2.0
+        },
+        {
+          "id": 8,
+          "category": "fixture_reasoning",
+          "score": 3.0
+        },
+        {
+          "id": 9,
+          "category": "fixture_knowledge",
+          "score": 2.0
+        },
+        {
+          "id": 10,
+          "category": "fixture_knowledge",
+          "score": 3.0
+        },
+        {
+          "id": 11,
+          "category": "fixture_knowledge",
+          "score": 3.0
+        },
+        {
+          "id": 12,
+          "category": "fixture_format",
+          "score": 1.0
+        },
+        {
+          "id": 13,
+          "category": "fixture_format",
+          "score": 3.0
+        },
+        {
+          "id": 14,
+          "category": "fixture_format",
+          "score": 3.0
+        },
+        {
+          "id": 15,
+          "category": "multimodal",
+          "score": 3.0
+        },
+        {
+          "id": 16,
+          "category": "multimodal",
+          "score": 1.0
+        }
+      ],
+      "variants": {
+        "all": {
+          "score": {
+            "pts": 37,
+            "max": 48,
+            "pct": 77.1,
+            "ci_lo": 64.6,
+            "ci_hi": 89.6,
+            "rank": 1,
+            "tied": true,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "fixture_code": 75,
+              "fixture_format": 78,
+              "fixture_knowledge": 89,
+              "fixture_reasoning": 75,
+              "multimodal": 67
+            }
+          },
+          "check": {
+            "pct": 76.1,
+            "ci_lo": 60.7,
+            "ci_hi": 89.6,
+            "rank": 1,
+            "tied": true,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "fixture_code": 68,
+              "fixture_format": 72,
+              "fixture_knowledge": 94,
+              "fixture_reasoning": 82,
+              "multimodal": 61
+            }
+          }
+        },
+        "text": {
+          "score": {
+            "pts": 33,
+            "max": 42,
+            "pct": 78.6,
+            "ci_lo": 64.3,
+            "ci_hi": 90.5,
+            "rank": 1,
+            "tied": true,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "fixture_code": 75,
+              "fixture_format": 78,
+              "fixture_knowledge": 89,
+              "fixture_reasoning": 75
+            }
+          },
+          "check": {
+            "pct": 78.4,
+            "ci_lo": 63.5,
+            "ci_hi": 90.9,
+            "rank": 1,
+            "tied": true,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "fixture_code": 68,
+              "fixture_format": 72,
+              "fixture_knowledge": 94,
+              "fixture_reasoning": 82
+            }
+          }
+        }
+      }
+    },
+    {
+      "model": "example-model-gamma-8b",
+      "judge_model": "fixture-judge-1",
+      "self_judged": false,
+      "hardware": {
+        "name": "Fixture Chip A",
+        "memory": "64 GB"
+      },
+      "is_local": true,
+      "n_runs": 1,
+      "tok_per_sec": 96.5,
+      "avg_time": 20.7,
+      "per_prompt": [
+        {
+          "id": 1,
+          "category": "fixture_code",
+          "score": 2.0
+        },
+        {
+          "id": 2,
+          "category": "fixture_code",
+          "score": 2.0
+        },
+        {
+          "id": 3,
+          "category": "fixture_code",
+          "score": 1.0
+        },
+        {
+          "id": 4,
+          "category": "fixture_code",
+          "score": 0.0
+        },
+        {
+          "id": 5,
+          "category": "fixture_reasoning",
+          "score": 2.0
+        },
+        {
+          "id": 6,
+          "category": "fixture_reasoning",
+          "score": 1.0
+        },
+        {
+          "id": 7,
+          "category": "fixture_reasoning",
+          "score": 2.0
+        },
+        {
+          "id": 8,
+          "category": "fixture_reasoning",
+          "score": 1.0
+        },
+        {
+          "id": 9,
+          "category": "fixture_knowledge",
+          "score": 2.0
+        },
+        {
+          "id": 10,
+          "category": "fixture_knowledge",
+          "score": 2.0
+        },
+        {
+          "id": 11,
+          "category": "fixture_knowledge",
+          "score": 3.0
+        },
+        {
+          "id": 12,
+          "category": "fixture_format",
+          "score": 1.0
+        },
+        {
+          "id": 13,
+          "category": "fixture_format",
+          "score": 3.0
+        },
+        {
+          "id": 14,
+          "category": "fixture_format",
+          "score": 1.0
+        },
+        {
+          "id": 15,
+          "category": "multimodal",
+          "score": 2.0
+        },
+        {
+          "id": 16,
+          "category": "multimodal",
+          "score": 1.0
+        }
+      ],
+      "variants": {
+        "all": {
+          "score": {
+            "pts": 26,
+            "max": 48,
+            "pct": 54.2,
+            "ci_lo": 41.7,
+            "ci_hi": 66.7,
+            "rank": 4,
+            "tied": false,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "fixture_code": 42,
+              "fixture_format": 56,
+              "fixture_knowledge": 78,
+              "fixture_reasoning": 50,
+              "multimodal": 50
+            }
+          },
+          "check": {
+            "pct": 57.6,
+            "ci_lo": 43.4,
+            "ci_hi": 70.5,
+            "rank": 4,
+            "tied": false,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "fixture_code": 48,
+              "fixture_format": 54,
+              "fixture_knowledge": 84,
+              "fixture_reasoning": 55,
+              "multimodal": 48
+            }
+          }
+        },
+        "text": {
+          "score": {
+            "pts": 23,
+            "max": 42,
+            "pct": 54.8,
+            "ci_lo": 40.5,
+            "ci_hi": 69.0,
+            "rank": 4,
+            "tied": false,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "fixture_code": 42,
+              "fixture_format": 56,
+              "fixture_knowledge": 78,
+              "fixture_reasoning": 50
+            }
+          },
+          "check": {
+            "pct": 59.0,
+            "ci_lo": 43.3,
+            "ci_hi": 73.7,
+            "rank": 4,
+            "tied": false,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "fixture_code": 48,
+              "fixture_format": 54,
+              "fixture_knowledge": 84,
+              "fixture_reasoning": 55
+            }
+          }
+        }
+      }
+    },
+    {
+      "model": "example-model-delta-14b",
+      "judge_model": "fixture-judge-1",
+      "self_judged": false,
+      "hardware": {
+        "name": "Fixture Chip A",
+        "memory": "64 GB"
+      },
+      "is_local": true,
+      "n_runs": 1,
+      "tok_per_sec": 63.2,
+      "avg_time": 31.6,
+      "per_prompt": [
+        {
+          "id": 1,
+          "category": "fixture_code",
+          "score": 2.0
+        },
+        {
+          "id": 2,
+          "category": "fixture_code",
+          "score": 3.0
+        },
+        {
+          "id": 3,
+          "category": "fixture_code",
+          "score": 0.0
+        },
+        {
+          "id": 4,
+          "category": "fixture_code",
+          "score": 1.0
+        },
+        {
+          "id": 5,
+          "category": "fixture_reasoning",
+          "score": 2.0
+        },
+        {
+          "id": 6,
+          "category": "fixture_reasoning",
+          "score": 2.0
+        },
+        {
+          "id": 7,
+          "category": "fixture_reasoning",
+          "score": 2.0
+        },
+        {
+          "id": 8,
+          "category": "fixture_reasoning",
+          "score": 3.0
+        },
+        {
+          "id": 9,
+          "category": "fixture_knowledge",
+          "score": 1.0
+        },
+        {
+          "id": 10,
+          "category": "fixture_knowledge",
+          "score": 1.0
+        },
+        {
+          "id": 11,
+          "category": "fixture_knowledge",
+          "score": 2.0
+        },
+        {
+          "id": 12,
+          "category": "fixture_format",
+          "score": 1.0
+        },
+        {
+          "id": 13,
+          "category": "fixture_format",
+          "score": 1.0
+        },
+        {
+          "id": 14,
+          "category": "fixture_format",
+          "score": 1.0
+        },
+        {
+          "id": 15,
+          "category": "multimodal",
+          "score": 0.0
+        },
+        {
+          "id": 16,
+          "category": "multimodal",
+          "score": 2.0
+        }
+      ],
+      "variants": {
+        "all": {
+          "score": {
+            "pts": 24,
+            "max": 48,
+            "pct": 50.0,
+            "ci_lo": 35.4,
+            "ci_hi": 64.6,
+            "rank": 4,
+            "tied": true,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "fixture_code": 50,
+              "fixture_format": 33,
+              "fixture_knowledge": 44,
+              "fixture_reasoning": 75,
+              "multimodal": 33
+            }
+          },
+          "check": {
+            "pct": 52.3,
+            "ci_lo": 39.4,
+            "ci_hi": 65.9,
+            "rank": 4,
+            "tied": true,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "fixture_code": 56,
+              "fixture_format": 35,
+              "fixture_knowledge": 45,
+              "fixture_reasoning": 75,
+              "multimodal": 35
+            }
+          }
+        },
+        "text": {
+          "score": {
+            "pts": 22,
+            "max": 42,
+            "pct": 52.4,
+            "ci_lo": 38.1,
+            "ci_hi": 66.7,
+            "rank": 4,
+            "tied": true,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "fixture_code": 50,
+              "fixture_format": 33,
+              "fixture_knowledge": 44,
+              "fixture_reasoning": 75
+            }
+          },
+          "check": {
+            "pct": 54.8,
+            "ci_lo": 40.9,
+            "ci_hi": 69.1,
+            "rank": 4,
+            "tied": true,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "fixture_code": 56,
+              "fixture_format": 35,
+              "fixture_knowledge": 45,
+              "fixture_reasoning": 75
+            }
+          }
+        }
+      }
+    },
+    {
+      "model": "example-model-epsilon-3b",
+      "judge_model": "fixture-judge-1",
+      "self_judged": false,
+      "hardware": {
+        "name": "Fixture Chip A",
+        "memory": "64 GB"
+      },
+      "is_local": true,
+      "n_runs": 1,
+      "tok_per_sec": 140.3,
+      "avg_time": 14.3,
+      "per_prompt": [
+        {
+          "id": 1,
+          "category": "fixture_code",
+          "score": 0.0
+        },
+        {
+          "id": 2,
+          "category": "fixture_code",
+          "score": 2.0
+        },
+        {
+          "id": 3,
+          "category": "fixture_code",
+          "score": 0.0
+        },
+        {
+          "id": 4,
+          "category": "fixture_code",
+          "score": 1.0
+        },
+        {
+          "id": 5,
+          "category": "fixture_reasoning",
+          "score": 3.0
+        },
+        {
+          "id": 6,
+          "category": "fixture_reasoning",
+          "score": 2.0
+        },
+        {
+          "id": 7,
+          "category": "fixture_reasoning",
+          "score": 3.0
+        },
+        {
+          "id": 8,
+          "category": "fixture_reasoning",
+          "score": 2.0
+        },
+        {
+          "id": 9,
+          "category": "fixture_knowledge",
+          "score": 1.0
+        },
+        {
+          "id": 10,
+          "category": "fixture_knowledge",
+          "score": 2.0
+        },
+        {
+          "id": 11,
+          "category": "fixture_knowledge",
+          "score": 2.0
+        },
+        {
+          "id": 12,
+          "category": "fixture_format",
+          "score": 1.0
+        },
+        {
+          "id": 13,
+          "category": "fixture_format",
+          "score": 1.0
+        },
+        {
+          "id": 14,
+          "category": "fixture_format",
+          "score": 1.0
+        },
+        {
+          "id": 15,
+          "category": "multimodal",
+          "score": 1.0
+        },
+        {
+          "id": 16,
+          "category": "multimodal",
+          "score": 0.0
+        }
+      ],
+      "variants": {
+        "all": {
+          "score": {
+            "pts": 22,
+            "max": 48,
+            "pct": 45.8,
+            "ci_lo": 31.2,
+            "ci_hi": 60.4,
+            "rank": 4,
+            "tied": true,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "fixture_code": 25,
+              "fixture_format": 33,
+              "fixture_knowledge": 56,
+              "fixture_reasoning": 83,
+              "multimodal": 17
+            }
+          },
+          "check": {
+            "pct": 43.9,
+            "ci_lo": 27.6,
+            "ci_hi": 60.5,
+            "rank": 4,
+            "tied": true,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "fixture_code": 28,
+              "fixture_format": 22,
+              "fixture_knowledge": 48,
+              "fixture_reasoning": 88,
+              "multimodal": 17
+            }
+          }
+        },
+        "text": {
+          "score": {
+            "pts": 21,
+            "max": 42,
+            "pct": 50.0,
+            "ci_lo": 33.3,
+            "ci_hi": 66.7,
+            "rank": 4,
+            "tied": true,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "fixture_code": 25,
+              "fixture_format": 33,
+              "fixture_knowledge": 56,
+              "fixture_reasoning": 83
+            }
+          },
+          "check": {
+            "pct": 47.8,
+            "ci_lo": 30.1,
+            "ci_hi": 66.0,
+            "rank": 4,
+            "tied": true,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "fixture_code": 28,
+              "fixture_format": 22,
+              "fixture_knowledge": 48,
+              "fixture_reasoning": 88
+            }
+          }
+        }
+      }
+    },
+    {
+      "model": "example-model-partial-24b",
+      "judge_model": "fixture-judge-1",
+      "self_judged": false,
+      "hardware": {
+        "name": "Fixture Chip A",
+        "memory": "64 GB"
+      },
+      "is_local": true,
+      "n_runs": 1,
+      "tok_per_sec": 30.0,
+      "avg_time": 66.7,
+      "per_prompt": [
+        {
+          "id": 1,
+          "category": "fixture_code",
+          "score": 3.0
+        },
+        {
+          "id": 2,
+          "category": "fixture_code",
+          "score": 2.0
+        },
+        {
+          "id": 3,
+          "category": "fixture_code",
+          "score": 2.0
+        },
+        {
+          "id": 4,
+          "category": "fixture_code",
+          "score": null
+        },
+        {
+          "id": 5,
+          "category": "fixture_reasoning",
+          "score": 2.0
+        },
+        {
+          "id": 6,
+          "category": "fixture_reasoning",
+          "score": 2.0
+        },
+        {
+          "id": 7,
+          "category": "fixture_reasoning",
+          "score": 2.0
+        },
+        {
+          "id": 8,
+          "category": "fixture_reasoning",
+          "score": null
+        },
+        {
+          "id": 9,
+          "category": "fixture_knowledge",
+          "score": 3.0
+        },
+        {
+          "id": 10,
+          "category": "fixture_knowledge",
+          "score": 2.0
+        },
+        {
+          "id": 11,
+          "category": "fixture_knowledge",
+          "score": 3.0
+        },
+        {
+          "id": 12,
+          "category": "fixture_format",
+          "score": null
+        },
+        {
+          "id": 13,
+          "category": "fixture_format",
+          "score": null
+        },
+        {
+          "id": 14,
+          "category": "fixture_format",
+          "score": 2.0
+        },
+        {
+          "id": 15,
+          "category": "multimodal",
+          "score": 3.0
+        },
+        {
+          "id": 16,
+          "category": "multimodal",
+          "score": 3.0
+        }
+      ],
+      "variants": {
+        "all": {
+          "score": {
+            "pts": 29,
+            "max": 36,
+            "pct": 80.6,
+            "ci_lo": 72.2,
+            "ci_hi": 88.9,
+            "rank": 7,
+            "tied": false,
+            "coverage": 0.75,
+            "low_coverage": true,
+            "by_category": {
+              "fixture_code": 78,
+              "fixture_format": 67,
+              "fixture_knowledge": 89,
+              "fixture_reasoning": 67,
+              "multimodal": 100
+            }
+          },
+          "check": {
+            "pct": 77.0,
+            "ci_lo": 66.0,
+            "ci_hi": 88.3,
+            "rank": 7,
+            "tied": false,
+            "coverage": 0.75,
+            "low_coverage": true,
+            "by_category": {
+              "fixture_code": 81,
+              "fixture_format": 62,
+              "fixture_knowledge": 86,
+              "fixture_reasoning": 54,
+              "multimodal": 100
+            }
+          }
+        },
+        "text": {
+          "score": {
+            "pts": 23,
+            "max": 30,
+            "pct": 76.7,
+            "ci_lo": 66.7,
+            "ci_hi": 86.7,
+            "rank": 7,
+            "tied": false,
+            "coverage": 0.714,
+            "low_coverage": true,
+            "by_category": {
+              "fixture_code": 78,
+              "fixture_format": 67,
+              "fixture_knowledge": 89,
+              "fixture_reasoning": 67
+            }
+          },
+          "check": {
+            "pct": 72.4,
+            "ci_lo": 61.1,
+            "ci_hi": 83.9,
+            "rank": 7,
+            "tied": false,
+            "coverage": 0.714,
+            "low_coverage": true,
+            "by_category": {
+              "fixture_code": 81,
+              "fixture_format": 62,
+              "fixture_knowledge": 86,
+              "fixture_reasoning": 54
+            }
+          }
+        }
+      }
+    }
+  ]
+}

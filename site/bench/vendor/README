@@ -1,0 +1,12 @@
+Vendored so cupel.run/bench does not depend on a CDN at view time.
+Versions match the local dashboard (cupel/ui/index.html, cupel/ui/pages/dashboard.js).
+
+file              version          source                                                              sha256
+preact.module.js  preact 10.25.4   https://cdn.jsdelivr.net/npm/preact@10.25.4/dist/preact.module.js       1a1af6db5b7549506c0247211860a322db7145cd254cd7f1781daf3ece7a54ab
+hooks.module.js   preact 10.25.4   https://cdn.jsdelivr.net/npm/preact@10.25.4/hooks/dist/hooks.module.js  2cb84210e9d5f865f7533eee5679005fad485761a847e2461e43638b9466479b
+htm.module.js     htm 3.1.1        https://cdn.jsdelivr.net/npm/htm@3.1.1/dist/htm.module.js              ab33dd3f38059b9be4d5f5350128eefb2356639c4e0bbe9d9e8b3ba75847e9e4
+chart.umd.js      chart.js 4.4.7   https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.js          2812cb8825fdc57469eb2f7bb055e9429244e599920511ee477e828499b632cb
+
+hooks.module.js imports the bare specifier "preact"; index.html resolves it with an import map.
+chart.umd.js is the self-contained UMD build (it sets window.Chart); bench.js loads it on first chart tab.
+All are MIT licensed.

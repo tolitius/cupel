@@ -72,6 +72,30 @@ results can be sorted, tagged, muted and expanded to inspect individual evaluati
 
 <img src="doc/results.png" alt="results — browse, tag, and manage all scored runs" width="100%">
 
+## publish
+
+with a `publish` block in `~/.cupel/config.yml` (see `config.example.yml`), the dashboard shows a **Publish** button that turns the current board into a read-only public leaderboard at `cupel.run/bench`
+
+```yaml
+publish:
+  repo: ~/src/cupel      # a cupel checkout whose site/ deploys to cupel.run
+  handle: your-handle
+```
+
+* Publish builds a sanitized snapshot, validates it, and shows a preview. "Commit to repo" writes `site/bench/bench.json` and makes one commit touching only that file
+* nothing is pushed: review with `git -C <repo> show --stat HEAD`, then `git -C <repo> push`. once pushed it is public in git history for good
+* the page starts in your current view (`text`, metric, chart, sort). `text` and the criteria metric stay live for viewers; `local` and `notes` are frozen at what you had, and sample models are never published
+* one board, one eval set: runs from older cupel versions are matched to an eval set in `~/.cupel/eval-sets/` by their prompts, the set with the most runs is published, and the preview lists what was left out (muted, other eval sets, unidentifiable runs)
+
+what the snapshot contains, and nothing else: model names, judge model, hardware name and memory (cloud rows show only `OpenRouter`, `Anthropic`, `OpenAI` or `remote`), scores, intervals, ranks, speed, and per prompt only its id, category and score.
+no prompt text, titles, responses, thinking, judge reasoning, file names, paths, URLs or hardware specs. every publish is scanned for those before anything is written
+
+what it does reveal, by design:
+
+* prompt ids and categories show the eval set's shape: how many prompts per category, and which prompts every model fails
+* the eval set's hash is published; if it is the public starter set, the hash says so
+* model names, the judge, hardware names, and your run notes (only with the `notes` toggle on, and never when a note is just the eval set's name) are published verbatim
+
 ## judge
 
 set a default judge in UI settings or in `config.yml`:

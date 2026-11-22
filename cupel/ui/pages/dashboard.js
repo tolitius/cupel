@@ -380,6 +380,13 @@ function Dashboard({ providers, refreshProviders }) {
   const [radarModels, setRadarModels] = useState([]);
   const [chartLoaded, setChartLoaded] = useState(false);
 
+  // Publish to cupel.run/bench: hidden unless ~/.cupel/config.yml has a publish block
+  const [publishStatus, setPublishStatus] = useState(null);
+  const [publishModal, setPublishModal] = useState(null);
+  useEffect(() => {
+    fetch('/api/publish/status').then(r => r.json()).then(setPublishStatus).catch(() => {});
+  }, []);
+
   // Load Chart.js on mount if a tab was persisted from a previous session
   useEffect(() => {
     if (chartTab && !chartLoaded) {
@@ -576,12 +583,44 @@ function Dashboard({ providers, refreshProviders }) {
 
   const thStyle = 'cursor:pointer;user-select:none';
 
+  // -- Publish to cupel.run/bench --
+  const openPublish = () => {
+    const view = {
+      text: textOnly,
+      metric: metric === 'auto' ? (leaderboard.metric === 'check_score' ? 'check' : 'score') : metric,
+      chart_tab: chartTab || null,
+      sort_col: sortCol,
+      sort_dir: sortDir,
+    };
+    const frozen = { local: localOnly, notes: showNotes };
+    const notes = [];
+    if (showExamples) notes.push('sample models are never published');
+    if (modelFilter) notes.push(`the search filter "${modelFilter}" is ignored: every model on the board is published`);
+    setPublishModal({ stage: 'loading', notes });
+    postJSON('/api/publish/preview', { view, frozen }).then(({ ok, data }) => {
+      if (ok) setPublishModal({ stage: 'preview', notes, ...data });
+      else setPublishModal({ stage: 'error', notes, errors: errorList(data) });
+    }).catch(e => setPublishModal({ stage: 'error', notes, errors: [String(e)] }));
+  };
+
+  const commitPublish = () => {
+    const token = publishModal.token;
+    setPublishModal(m => ({ ...m, stage: 'committing' }));
+    postJSON('/api/publish/commit', { token }).then(({ ok, data }) => {
+      if (ok) setPublishModal(m => ({ ...m, stage: 'done', result: data }));
+      else setPublishModal(m => ({ ...m, stage: 'preview', errors: errorList(data) }));
+    }).catch(e => setPublishModal(m => ({ ...m, stage: 'preview', errors: [String(e)] })));
+  };
+
   // -- Title strip --
   const titleStrip = html`
     <div class="title-strip" style="display:flex;align-items:baseline;justify-content:space-between">
       <div class="title-main" style="margin-bottom:0">cupel${version ? html` <span style="font-size:12px;font-weight:400;color:var(--text-3);margin-left:3px">v${version}</span>` : ''}</div>
-      <div style="font-family:var(--font-data);font-size:13px;color:var(--text-3)">
-        ${hardwareStr}${thermalState != null && THERMAL[thermalState] ? (() => { const t = THERMAL[thermalState]; return html`<span title="thermal: ${t.label}" style="display:inline-flex;gap:2px;align-items:center;margin-left:8px;cursor:default">${[0,1,2,3].map(i => html`<span style="width:4px;height:12px;border-radius:1px;background:${i < t.bars ? t.color : 'var(--border-subtle)'}"></span>`)}</span>`; })() : ''}
+      <div style="font-family:var(--font-data);font-size:13px;color:var(--text-3);display:flex;align-items:center;gap:14px">
+        <span>${hardwareStr}${thermalState != null && THERMAL[thermalState] ? (() => { const t = THERMAL[thermalState]; return html`<span title="thermal: ${t.label}" style="display:inline-flex;gap:2px;align-items:center;margin-left:8px;cursor:default">${[0,1,2,3].map(i => html`<span style="width:4px;height:12px;border-radius:1px;background:${i < t.bars ? t.color : 'var(--border-subtle)'}"></span>`)}</span>`; })() : ''}</span>
+        ${publishStatus && publishStatus.enabled ? html`
+          <button class="btn-ghost" style="padding:3px 12px;font-size:12px" title="publish this board to cupel.run/bench (commits to ${publishStatus.repo}; you push)"
+            onClick=${openPublish}>Publish</button>` : null}
       </div>
     </div>`;
 
@@ -1007,6 +1046,102 @@ function Dashboard({ providers, refreshProviders }) {
         ${catTable}
       </div>
       ${detail}
+      ${publishModal ? html`<${PublishModal} modal=${publishModal} repo=${publishStatus && publishStatus.repo}
+        onCommit=${commitPublish} onClose=${() => setPublishModal(null)} />` : null}
+    </div>`;
+}
+
+// ── Publish preview modal ──
+
+function postJSON(url, body) {
+  return fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+    .then(r => r.json().catch(() => ({})).then(data => ({ ok: r.ok, data })));
+}
+
+function errorList(data) {
+  const d = data && data.detail;
+  if (Array.isArray(d)) return d.map(x => typeof x === 'string' ? x : JSON.stringify(x));
+  return [d ? String(d) : 'request failed'];
+}
+
+const DROP_LABELS = {
+  muted: 'muted', local: 'cloud (local only is on)',
+  other_eval_set: 'on another eval set', unidentified_eval_set: 'eval set not identifiable',
+};
+
+function PublishModal({ modal, repo, onCommit, onClose }) {
+  const mono = 'font-family:var(--font-data);font-size:12px';
+  const s = modal.snapshot;
+  const sum = modal.summary;
+  let rows = [];
+  if (s) {
+    const sub = s.view.text ? 'text' : 'all';
+    rows = s.entries.map(e => ({ e, v: e.variants[sub][s.view.metric] }))
+      .filter(r => r.v).sort((a, b) => a.v.rank - b.v.rank || b.v.pct - a.v.pct);
+  }
+  const dropped = sum ? Object.entries(sum.dropped).filter(([, n]) => n > 0) : [];
+  const frozenBits = s ? [
+    s.frozen.local ? 'local models only' : 'local + cloud',
+    s.frozen.notes ? 'notes published' : 'no notes',
+    s.view.text ? 'initial view: text only' : 'initial view: all prompts',
+    `metric: ${s.view.metric}`,
+  ] : [];
+
+  return html`
+    <div style="position:fixed;inset:0;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;z-index:100"
+         onClick=${(e) => { if (e.target === e.currentTarget && modal.stage !== 'committing') onClose(); }}>
+      <div style="background:var(--bg-panel);border:1px solid var(--border);border-radius:var(--radius-lg);width:min(720px,94vw);max-height:88vh;overflow:auto;padding:18px 20px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px">
+          <div style="font-family:var(--font-label);font-size:16px;font-weight:700">Publish to cupel.run/bench</div>
+          <span style="${mono};color:var(--text-3);cursor:pointer" onClick=${onClose}>✕</span>
+        </div>
+
+        ${(modal.notes || []).map(n => html`<div style="${mono};color:var(--warn);margin-bottom:4px">${n}</div>`)}
+        ${modal.stage === 'loading' ? html`<div style="${mono};color:var(--text-2);padding:12px 0">building snapshot…</div>` : null}
+        ${modal.errors && modal.errors.length ? html`
+          <div style="${mono};color:var(--bad);margin:8px 0;white-space:pre-wrap">${modal.errors.map(e => html`<div>${e}</div>`)}</div>` : null}
+
+        ${s ? html`
+          <div style="${mono};color:var(--text-2);line-height:1.7;margin:6px 0 10px">
+            <div><b style="color:var(--text)">${sum.n_entries}</b> models · <b style="color:var(--text)">${sum.n_prompts}</b> prompts · eval set ${sum.eval_set.hash} (${sum.eval_set.n_runs} runs) · criteria metric ${sum.check_available ? 'available' : 'not available'}</div>
+            <div>${frozenBits.join(' · ')}</div>
+            ${dropped.length ? html`<div style="color:var(--warn)">not published: ${dropped.map(([k, n]) => `${n} ${DROP_LABELS[k] || k}`).join(' · ')}</div>` : null}
+          </div>
+          <table style="width:100%;border-collapse:collapse;${mono}">
+            <thead><tr style="color:var(--text-3);text-align:left"><th style="padding:3px 6px">#</th><th style="padding:3px 6px">model</th><th style="padding:3px 6px;text-align:right">%</th></tr></thead>
+            <tbody>${rows.map(({ e, v }) => html`
+              <tr style="border-top:1px solid var(--border-subtle)">
+                <td style="padding:3px 6px;color:var(--text-3)">${v.rank}${v.tied ? '=' : ''}</td>
+                <td style="padding:3px 6px;color:var(--text)">${e.model}<span style="color:var(--text-3)"> · ${e.hardware.name} ${e.hardware.memory}</span></td>
+                <td style="padding:3px 6px;text-align:right;color:var(--text)">${v.pct.toFixed(1)}</td>
+              </tr>`)}</tbody>
+          </table>
+          <details style="margin-top:10px">
+            <summary style="${mono};color:var(--text-3);cursor:pointer">raw bench.json</summary>
+            <pre style="${mono};font-size:11px;color:var(--text-2);background:var(--bg);padding:8px;max-height:300px;overflow:auto;white-space:pre-wrap">${JSON.stringify(s, null, 2)}</pre>
+          </details>
+        ` : null}
+
+        ${modal.stage === 'done' ? html`
+          <div style="${mono};color:var(--text-2);margin-top:12px;line-height:1.8">
+            ${modal.result.committed ? html`
+              <div style="color:var(--good)">committed ${modal.result.sha.slice(0, 10)}: ${modal.result.message}</div>
+              <div>review it, then push to publish:</div>
+              <div style="color:var(--text)">git -C ${repo} show --stat HEAD</div>
+              <div style="color:var(--text)">git -C ${repo} push</div>
+            ` : html`<div>nothing to commit: ${modal.result.reason}</div>`}
+          </div>
+        ` : null}
+
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px">
+          ${modal.stage === 'done' ? html`<button class="btn-primary" onClick=${onClose}>Close</button>` : html`
+            <button class="btn-ghost" onClick=${onClose} disabled=${modal.stage === 'committing'}>Cancel</button>
+            ${s ? html`<button class="btn-primary" onClick=${onCommit} disabled=${modal.stage !== 'preview'}>
+              ${modal.stage === 'committing' ? 'Committing…' : 'Commit to repo'}</button>` : null}
+          `}
+        </div>
+        ${s && modal.stage === 'preview' ? html`<div style="${mono};color:var(--text-3);margin-top:8px;text-align:right">writes site/bench/bench.json in ${repo} and commits it. Nothing is pushed.</div>` : null}
+      </div>
     </div>`;
 }
 

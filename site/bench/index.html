@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>cupel bench</title>
+<meta name="description" content="A public cupel leaderboard: local and cloud LLMs scored on a private eval set.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Ccircle cx='24' cy='24' r='22' fill='none' stroke='%23D3D1C7' stroke-width='1.8'/%3E%3Ccircle cx='24' cy='24' r='7' fill='%23D4A030'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anybody:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./bench.css">
+<script type="importmap">
+{
+  "imports": {
+    "preact": "./vendor/preact.module.js",
+    "preact/hooks": "./vendor/hooks.module.js",
+    "htm": "./vendor/htm.module.js"
+  }
+}
+</script>
+</head>
+<body>
+<div id="app"></div>
+<noscript><p class="msg">This leaderboard needs JavaScript. The raw data is at <a href="./bench.json">bench.json</a>.</p></noscript>
+<script type="module" src="./bench.js"></script>
+</body>
+</html>
