@@ -218,6 +218,10 @@
     line-height: 1.6;
   }
 
+  .pillar-link { display: block; text-decoration: none; }
+  .pillar-link .pillar-cta { color: var(--gold); transition: color 0.15s; }
+  .pillar-link:hover .pillar-cta { color: var(--gold-light); }
+
   /* ── footer ── */
 
   .footer {
@@ -279,6 +283,7 @@
       <span class="logo-text">cupel</span>
     </div>
     <nav class="nav">
+      <a href="/bench/">bench</a>
       <a href="https://github.com/tolitius/cupel">github</a>
       <a href="https://pypi.org/project/cupel/">pypi</a>
     </nav>
@@ -334,10 +339,10 @@
       <div class="pillar-title">local &amp; remote</div>
       <div class="pillar-desc">omlx · ollama · lm studio · sglang · ...<br>openrouter · openai · anthropic · ...</div>
     </div>
-    <div class="pillar">
+    <a class="pillar pillar-link" href="/bench/">
       <div class="pillar-title">publish</div>
-      <div class="pillar-desc">optionally share and compare</div>
-    </div>
+      <div class="pillar-desc">share your results · <span class="pillar-cta">see a live board →</span></div>
+    </a>
   </div>
 
   <!-- footer -->
@@ -347,6 +352,7 @@
       <span>cupel</span>
     </div>
     <nav class="footer-links">
+      <a href="/bench/">bench</a>
       <a href="https://github.com/tolitius/cupel">github</a>
       <a href="https://pypi.org/project/cupel/">pypi</a>
     </nav>
