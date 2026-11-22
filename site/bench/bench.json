@@ -1,1287 +1,5129 @@
 {
   "schema_version": 1,
-  "handle": "example",
-  "published_at": "2026-11-22T18:00:00Z",
-  "cupel_version": "0.1.94",
+  "handle": "tolitius",
+  "published_at": "2026-11-22T19:53:28Z",
+  "cupel_version": "0.1.95",
   "eval_set": {
-    "hash": "sha256:fafafafafafafafa",
-    "n_prompts": 16,
-    "n_text_prompts": 14
+    "hash": "sha256:62abc59ade7a13c4",
+    "n_prompts": 23,
+    "n_text_prompts": 22
   },
-  "judge": "fixture-judge-1",
+  "judge": "claude-opus-5-5",
   "view": {
-    "text": false,
+    "text": true,
     "metric": "score",
     "chart_tab": null,
     "sort_col": "score",
     "sort_dir": "desc"
   },
   "frozen": {
-    "local": false,
-    "notes": true
+    "local": true,
+    "notes": false
   },
-  "check_available": true,
+  "check_available": false,
   "categories": [
-    "fixture_code",
-    "fixture_format",
-    "fixture_knowledge",
-    "fixture_reasoning",
-    "multimodal"
+    "assistant_competence",
+    "business_logic",
+    "chemistry",
+    "clojure_code",
+    "clojure_ecosystem",
+    "diagnostic_reasoning",
+    "distributed_systems",
+    "domain_knowledge",
+    "frontend_architecture",
+    "math_estimation",
+    "meta",
+    "ml_architecture",
+    "multimodal",
+    "networking",
+    "observability",
+    "python_coding",
+    "security",
+    "system_design"
   ],
   "prompts": [
     {
       "id": 1,
-      "category": "fixture_code"
+      "category": "multimodal"
     },
     {
       "id": 2,
-      "category": "fixture_code"
+      "category": "security"
     },
     {
       "id": 3,
-      "category": "fixture_code"
+      "category": "clojure_code"
     },
     {
       "id": 4,
-      "category": "fixture_code"
+      "category": "distributed_systems"
     },
     {
       "id": 5,
-      "category": "fixture_reasoning"
+      "category": "ml_architecture"
     },
     {
       "id": 6,
-      "category": "fixture_reasoning"
+      "category": "python_coding"
     },
     {
       "id": 7,
-      "category": "fixture_reasoning"
+      "category": "business_logic"
     },
     {
       "id": 8,
-      "category": "fixture_reasoning"
+      "category": "clojure_ecosystem"
     },
     {
       "id": 9,
-      "category": "fixture_knowledge"
+      "category": "frontend_architecture"
     },
     {
       "id": 10,
-      "category": "fixture_knowledge"
+      "category": "domain_knowledge"
     },
     {
       "id": 11,
-      "category": "fixture_knowledge"
+      "category": "system_design"
     },
     {
       "id": 12,
-      "category": "fixture_format"
+      "category": "observability"
     },
     {
       "id": 13,
-      "category": "fixture_format"
+      "category": "networking"
     },
     {
       "id": 14,
-      "category": "fixture_format"
+      "category": "math_estimation"
     },
     {
       "id": 15,
-      "category": "multimodal"
+      "category": "diagnostic_reasoning"
     },
     {
       "id": 16,
-      "category": "multimodal"
+      "category": "meta"
+    },
+    {
+      "id": 17,
+      "category": "chemistry"
+    },
+    {
+      "id": 18,
+      "category": "assistant_competence"
+    },
+    {
+      "id": 19,
+      "category": "assistant_competence"
+    },
+    {
+      "id": 20,
+      "category": "assistant_competence"
+    },
+    {
+      "id": 21,
+      "category": "assistant_competence"
+    },
+    {
+      "id": 22,
+      "category": "assistant_competence"
+    },
+    {
+      "id": 23,
+      "category": "assistant_competence"
     }
   ],
   "variants_meta": {
     "all": {
       "score": {
-        "noise_floor": 18.8,
-        "max_pts": 144
+        "noise_floor": null,
+        "max_pts": 69
       },
-      "check": {
-        "noise_floor": 15.0
-      }
+      "check": null
     },
     "text": {
       "score": {
-        "noise_floor": 14.3,
-        "max_pts": 126
+        "noise_floor": null,
+        "max_pts": 66
       },
-      "check": {
-        "noise_floor": 13.9
-      }
+      "check": null
     }
   },
   "entries": [
     {
-      "model": "example-cloud-model",
-      "judge_model": "fixture-judge-1",
+      "model": "DeepSeek-V4.1-Flash-1017-oQ2e-ngram-mtp",
+      "judge_model": "claude-opus-5-5",
       "self_judged": false,
       "hardware": {
-        "name": "OpenRouter",
-        "memory": ""
-      },
-      "is_local": false,
-      "n_runs": 1,
-      "tok_per_sec": 72.0,
-      "avg_time": 27.8,
-      "per_prompt": [
-        {
-          "id": 1,
-          "category": "fixture_code",
-          "score": 1.0
-        },
-        {
-          "id": 2,
-          "category": "fixture_code",
-          "score": 2.0
-        },
-        {
-          "id": 3,
-          "category": "fixture_code",
-          "score": 3.0
-        },
-        {
-          "id": 4,
-          "category": "fixture_code",
-          "score": 3.0
-        },
-        {
-          "id": 5,
-          "category": "fixture_reasoning",
-          "score": 3.0
-        },
-        {
-          "id": 6,
-          "category": "fixture_reasoning",
-          "score": 3.0
-        },
-        {
-          "id": 7,
-          "category": "fixture_reasoning",
-          "score": 3.0
-        },
-        {
-          "id": 8,
-          "category": "fixture_reasoning",
-          "score": 3.0
-        },
-        {
-          "id": 9,
-          "category": "fixture_knowledge",
-          "score": 3.0
-        },
-        {
-          "id": 10,
-          "category": "fixture_knowledge",
-          "score": 3.0
-        },
-        {
-          "id": 11,
-          "category": "fixture_knowledge",
-          "score": 3.0
-        },
-        {
-          "id": 12,
-          "category": "fixture_format",
-          "score": 3.0
-        },
-        {
-          "id": 13,
-          "category": "fixture_format",
-          "score": 2.0
-        },
-        {
-          "id": 14,
-          "category": "fixture_format",
-          "score": 2.0
-        },
-        {
-          "id": 15,
-          "category": "multimodal",
-          "score": 3.0
-        },
-        {
-          "id": 16,
-          "category": "multimodal",
-          "score": 3.0
-        }
-      ],
-      "variants": {
-        "all": {
-          "score": {
-            "pts": 43,
-            "max": 48,
-            "pct": 89.6,
-            "ci_lo": 79.2,
-            "ci_hi": 97.9,
-            "rank": 1,
-            "tied": false,
-            "coverage": 1.0,
-            "low_coverage": false,
-            "by_category": {
-              "fixture_code": 75,
-              "fixture_format": 78,
-              "fixture_knowledge": 100,
-              "fixture_reasoning": 100,
-              "multimodal": 100
-            }
-          },
-          "check": {
-            "pct": 88.1,
-            "ci_lo": 77.7,
-            "ci_hi": 95.9,
-            "rank": 1,
-            "tied": false,
-            "coverage": 1.0,
-            "low_coverage": false,
-            "by_category": {
-              "fixture_code": 72,
-              "fixture_format": 86,
-              "fixture_knowledge": 96,
-              "fixture_reasoning": 97,
-              "multimodal": 95
-            }
-          }
-        },
-        "text": {
-          "score": {
-            "pts": 37,
-            "max": 42,
-            "pct": 88.1,
-            "ci_lo": 76.2,
-            "ci_hi": 97.6,
-            "rank": 1,
-            "tied": false,
-            "coverage": 1.0,
-            "low_coverage": false,
-            "by_category": {
-              "fixture_code": 75,
-              "fixture_format": 78,
-              "fixture_knowledge": 100,
-              "fixture_reasoning": 100
-            }
-          },
-          "check": {
-            "pct": 87.2,
-            "ci_lo": 75.8,
-            "ci_hi": 96.2,
-            "rank": 1,
-            "tied": false,
-            "coverage": 1.0,
-            "low_coverage": false,
-            "by_category": {
-              "fixture_code": 72,
-              "fixture_format": 86,
-              "fixture_knowledge": 96,
-              "fixture_reasoning": 97
-            }
-          }
-        }
-      }
-    },
-    {
-      "model": "example-model-alpha-70b",
-      "judge_model": "fixture-judge-1",
-      "self_judged": false,
-      "hardware": {
-        "name": "Fixture Chip B",
+        "name": "Apple M4 Max",
         "memory": "128 GB"
       },
       "is_local": true,
-      "n_runs": 3,
-      "tok_per_sec": 18.1,
-      "avg_time": 110.5,
+      "n_runs": 1,
+      "tok_per_sec": 15.5,
+      "avg_time": 320.6,
       "per_prompt": [
         {
           "id": 1,
-          "category": "fixture_code",
-          "score": 2.0
+          "category": "multimodal",
+          "score": 1.0
         },
         {
           "id": 2,
-          "category": "fixture_code",
-          "score": 2.67
+          "category": "security",
+          "score": 2.0
         },
         {
           "id": 3,
-          "category": "fixture_code",
-          "score": 3.0
+          "category": "clojure_code",
+          "score": 2.0
         },
         {
           "id": 4,
-          "category": "fixture_code",
+          "category": "distributed_systems",
           "score": 3.0
         },
         {
           "id": 5,
-          "category": "fixture_reasoning",
+          "category": "ml_architecture",
           "score": 2.0
         },
         {
           "id": 6,
-          "category": "fixture_reasoning",
-          "score": 2.67
+          "category": "python_coding",
+          "score": 3.0
         },
         {
           "id": 7,
-          "category": "fixture_reasoning",
-          "score": 2.67
+          "category": "business_logic",
+          "score": 2.0
         },
         {
           "id": 8,
-          "category": "fixture_reasoning",
-          "score": 1.67
+          "category": "clojure_ecosystem",
+          "score": 2.0
         },
         {
           "id": 9,
-          "category": "fixture_knowledge",
-          "score": 2.0
+          "category": "frontend_architecture",
+          "score": 3.0
         },
         {
           "id": 10,
-          "category": "fixture_knowledge",
-          "score": 2.0
+          "category": "domain_knowledge",
+          "score": 3.0
         },
         {
           "id": 11,
-          "category": "fixture_knowledge",
-          "score": 2.67
+          "category": "system_design",
+          "score": 3.0
         },
         {
           "id": 12,
-          "category": "fixture_format",
-          "score": 2.67
+          "category": "observability",
+          "score": 3.0
         },
         {
           "id": 13,
-          "category": "fixture_format",
-          "score": 2.67
+          "category": "networking",
+          "score": 3.0
         },
         {
           "id": 14,
-          "category": "fixture_format",
-          "score": 2.67
+          "category": "math_estimation",
+          "score": 3.0
         },
         {
           "id": 15,
-          "category": "multimodal",
-          "score": 2.33
+          "category": "diagnostic_reasoning",
+          "score": 2.0
         },
         {
           "id": 16,
-          "category": "multimodal",
+          "category": "meta",
           "score": 2.0
+        },
+        {
+          "id": 17,
+          "category": "chemistry",
+          "score": 2.0
+        },
+        {
+          "id": 18,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 19,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 20,
+          "category": "assistant_competence",
+          "score": 3.0
+        },
+        {
+          "id": 21,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 22,
+          "category": "assistant_competence",
+          "score": 3.0
+        },
+        {
+          "id": 23,
+          "category": "assistant_competence",
+          "score": 0.0
         }
       ],
       "variants": {
         "all": {
           "score": {
-            "pts": 116,
-            "max": 144,
-            "pct": 80.6,
-            "ci_lo": 73.6,
-            "ci_hi": 87.5,
+            "pts": 53,
+            "max": 69,
+            "pct": 76.8,
+            "ci_lo": 66.7,
+            "ci_hi": 87.0,
             "rank": 1,
-            "tied": true,
+            "tied": false,
             "coverage": 1.0,
             "low_coverage": false,
             "by_category": {
-              "fixture_code": 89,
-              "fixture_format": 89,
-              "fixture_knowledge": 74,
-              "fixture_reasoning": 75,
-              "multimodal": 72
+              "assistant_competence": 67,
+              "business_logic": 67,
+              "chemistry": 67,
+              "clojure_code": 67,
+              "clojure_ecosystem": 67,
+              "diagnostic_reasoning": 67,
+              "distributed_systems": 100,
+              "domain_knowledge": 100,
+              "frontend_architecture": 100,
+              "math_estimation": 100,
+              "meta": 67,
+              "ml_architecture": 67,
+              "multimodal": 33,
+              "networking": 100,
+              "observability": 100,
+              "python_coding": 100,
+              "security": 67,
+              "system_design": 100
             }
           },
-          "check": {
-            "pct": 77.5,
-            "ci_lo": 70.7,
-            "ci_hi": 84.4,
-            "rank": 1,
-            "tied": true,
-            "coverage": 1.0,
-            "low_coverage": false,
-            "by_category": {
-              "fixture_code": 84,
-              "fixture_format": 85,
-              "fixture_knowledge": 69,
-              "fixture_reasoning": 74,
-              "multimodal": 74
-            }
-          }
+          "check": null
         },
         "text": {
           "score": {
-            "pts": 103,
-            "max": 126,
-            "pct": 81.7,
-            "ci_lo": 73.8,
-            "ci_hi": 88.1,
+            "pts": 52,
+            "max": 66,
+            "pct": 78.8,
+            "ci_lo": 68.2,
+            "ci_hi": 87.9,
             "rank": 1,
-            "tied": true,
+            "tied": false,
             "coverage": 1.0,
             "low_coverage": false,
             "by_category": {
-              "fixture_code": 89,
-              "fixture_format": 89,
-              "fixture_knowledge": 74,
-              "fixture_reasoning": 75
+              "assistant_competence": 67,
+              "business_logic": 67,
+              "chemistry": 67,
+              "clojure_code": 67,
+              "clojure_ecosystem": 67,
+              "diagnostic_reasoning": 67,
+              "distributed_systems": 100,
+              "domain_knowledge": 100,
+              "frontend_architecture": 100,
+              "math_estimation": 100,
+              "meta": 67,
+              "ml_architecture": 67,
+              "networking": 100,
+              "observability": 100,
+              "python_coding": 100,
+              "security": 67,
+              "system_design": 100
             }
           },
-          "check": {
-            "pct": 78.1,
-            "ci_lo": 70.1,
-            "ci_hi": 84.8,
-            "rank": 1,
-            "tied": true,
-            "coverage": 1.0,
-            "low_coverage": false,
-            "by_category": {
-              "fixture_code": 84,
-              "fixture_format": 85,
-              "fixture_knowledge": 69,
-              "fixture_reasoning": 74
-            }
-          }
+          "check": null
         }
       }
     },
     {
-      "model": "example-model-beta-32b",
-      "judge_model": "fixture-judge-1",
+      "model": "Inkling-2-Mini",
+      "judge_model": "claude-opus-5-5",
       "self_judged": false,
       "hardware": {
-        "name": "Fixture Chip A",
-        "memory": "64 GB"
+        "name": "Apple M4 Max",
+        "memory": "128 GB"
       },
       "is_local": true,
       "n_runs": 1,
-      "tok_per_sec": 41.0,
-      "avg_time": 48.8,
-      "notes": "fixture note: 4-bit quant",
+      "tok_per_sec": 42.8,
+      "avg_time": 74.2,
       "per_prompt": [
         {
           "id": 1,
-          "category": "fixture_code",
+          "category": "multimodal",
           "score": 1.0
         },
         {
           "id": 2,
-          "category": "fixture_code",
-          "score": 3.0
+          "category": "security",
+          "score": 2.0
         },
         {
           "id": 3,
-          "category": "fixture_code",
-          "score": 3.0
+          "category": "clojure_code",
+          "score": 2.0
         },
         {
           "id": 4,
-          "category": "fixture_code",
+          "category": "distributed_systems",
           "score": 2.0
         },
         {
           "id": 5,
-          "category": "fixture_reasoning",
+          "category": "ml_architecture",
           "score": 2.0
         },
         {
           "id": 6,
-          "category": "fixture_reasoning",
+          "category": "python_coding",
           "score": 2.0
         },
         {
           "id": 7,
-          "category": "fixture_reasoning",
+          "category": "business_logic",
           "score": 2.0
         },
         {
           "id": 8,
-          "category": "fixture_reasoning",
-          "score": 3.0
+          "category": "clojure_ecosystem",
+          "score": 1.0
         },
         {
           "id": 9,
-          "category": "fixture_knowledge",
+          "category": "frontend_architecture",
           "score": 2.0
         },
         {
           "id": 10,
-          "category": "fixture_knowledge",
-          "score": 3.0
+          "category": "domain_knowledge",
+          "score": 2.0
         },
         {
           "id": 11,
-          "category": "fixture_knowledge",
+          "category": "system_design",
           "score": 3.0
         },
         {
           "id": 12,
-          "category": "fixture_format",
-          "score": 1.0
+          "category": "observability",
+          "score": 2.0
         },
         {
           "id": 13,
-          "category": "fixture_format",
-          "score": 3.0
+          "category": "networking",
+          "score": 2.0
         },
         {
           "id": 14,
-          "category": "fixture_format",
+          "category": "math_estimation",
           "score": 3.0
         },
         {
           "id": 15,
+          "category": "diagnostic_reasoning",
+          "score": 2.0
+        },
+        {
+          "id": 16,
+          "category": "meta",
+          "score": 3.0
+        },
+        {
+          "id": 17,
+          "category": "chemistry",
+          "score": 3.0
+        },
+        {
+          "id": 18,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 19,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 20,
+          "category": "assistant_competence",
+          "score": 1.0
+        },
+        {
+          "id": 21,
+          "category": "assistant_competence",
+          "score": 3.0
+        },
+        {
+          "id": 22,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 23,
+          "category": "assistant_competence",
+          "score": 0.0
+        }
+      ],
+      "variants": {
+        "all": {
+          "score": {
+            "pts": 46,
+            "max": 69,
+            "pct": 66.7,
+            "ci_lo": 56.5,
+            "ci_hi": 76.8,
+            "rank": 2,
+            "tied": false,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "assistant_competence": 56,
+              "business_logic": 67,
+              "chemistry": 100,
+              "clojure_code": 67,
+              "clojure_ecosystem": 33,
+              "diagnostic_reasoning": 67,
+              "distributed_systems": 67,
+              "domain_knowledge": 67,
+              "frontend_architecture": 67,
+              "math_estimation": 100,
+              "meta": 100,
+              "ml_architecture": 67,
+              "multimodal": 33,
+              "networking": 67,
+              "observability": 67,
+              "python_coding": 67,
+              "security": 67,
+              "system_design": 100
+            }
+          },
+          "check": null
+        },
+        "text": {
+          "score": {
+            "pts": 45,
+            "max": 66,
+            "pct": 68.2,
+            "ci_lo": 57.6,
+            "ci_hi": 77.3,
+            "rank": 2,
+            "tied": false,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "assistant_competence": 56,
+              "business_logic": 67,
+              "chemistry": 100,
+              "clojure_code": 67,
+              "clojure_ecosystem": 33,
+              "diagnostic_reasoning": 67,
+              "distributed_systems": 67,
+              "domain_knowledge": 67,
+              "frontend_architecture": 67,
+              "math_estimation": 100,
+              "meta": 100,
+              "ml_architecture": 67,
+              "networking": 67,
+              "observability": 67,
+              "python_coding": 67,
+              "security": 67,
+              "system_design": 100
+            }
+          },
+          "check": null
+        }
+      }
+    },
+    {
+      "model": "nemotron-3.5-super-vl-nvfp4",
+      "judge_model": "claude-opus-5-5",
+      "self_judged": false,
+      "hardware": {
+        "name": "Apple M4 Max",
+        "memory": "128 GB"
+      },
+      "is_local": true,
+      "n_runs": 1,
+      "tok_per_sec": 13.0,
+      "avg_time": 263.6,
+      "per_prompt": [
+        {
+          "id": 1,
+          "category": "multimodal",
+          "score": 1.0
+        },
+        {
+          "id": 2,
+          "category": "security",
+          "score": 2.0
+        },
+        {
+          "id": 3,
+          "category": "clojure_code",
+          "score": 2.0
+        },
+        {
+          "id": 4,
+          "category": "distributed_systems",
+          "score": 2.0
+        },
+        {
+          "id": 5,
+          "category": "ml_architecture",
+          "score": 2.0
+        },
+        {
+          "id": 6,
+          "category": "python_coding",
+          "score": 2.0
+        },
+        {
+          "id": 7,
+          "category": "business_logic",
+          "score": 2.0
+        },
+        {
+          "id": 8,
+          "category": "clojure_ecosystem",
+          "score": 2.0
+        },
+        {
+          "id": 9,
+          "category": "frontend_architecture",
+          "score": 2.0
+        },
+        {
+          "id": 10,
+          "category": "domain_knowledge",
+          "score": 3.0
+        },
+        {
+          "id": 11,
+          "category": "system_design",
+          "score": 3.0
+        },
+        {
+          "id": 12,
+          "category": "observability",
+          "score": 2.0
+        },
+        {
+          "id": 13,
+          "category": "networking",
+          "score": 2.0
+        },
+        {
+          "id": 14,
+          "category": "math_estimation",
+          "score": 2.0
+        },
+        {
+          "id": 15,
+          "category": "diagnostic_reasoning",
+          "score": 2.0
+        },
+        {
+          "id": 16,
+          "category": "meta",
+          "score": 2.0
+        },
+        {
+          "id": 17,
+          "category": "chemistry",
+          "score": 2.0
+        },
+        {
+          "id": 18,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 19,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 20,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 21,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 22,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 23,
+          "category": "assistant_competence",
+          "score": 0.0
+        }
+      ],
+      "variants": {
+        "all": {
+          "score": {
+            "pts": 45,
+            "max": 69,
+            "pct": 65.2,
+            "ci_lo": 56.5,
+            "ci_hi": 72.5,
+            "rank": 3,
+            "tied": false,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "assistant_competence": 56,
+              "business_logic": 67,
+              "chemistry": 67,
+              "clojure_code": 67,
+              "clojure_ecosystem": 67,
+              "diagnostic_reasoning": 67,
+              "distributed_systems": 67,
+              "domain_knowledge": 100,
+              "frontend_architecture": 67,
+              "math_estimation": 67,
+              "meta": 67,
+              "ml_architecture": 67,
+              "multimodal": 33,
+              "networking": 67,
+              "observability": 67,
+              "python_coding": 67,
+              "security": 67,
+              "system_design": 100
+            }
+          },
+          "check": null
+        },
+        "text": {
+          "score": {
+            "pts": 44,
+            "max": 66,
+            "pct": 66.7,
+            "ci_lo": 59.1,
+            "ci_hi": 72.7,
+            "rank": 3,
+            "tied": false,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "assistant_competence": 56,
+              "business_logic": 67,
+              "chemistry": 67,
+              "clojure_code": 67,
+              "clojure_ecosystem": 67,
+              "diagnostic_reasoning": 67,
+              "distributed_systems": 67,
+              "domain_knowledge": 100,
+              "frontend_architecture": 67,
+              "math_estimation": 67,
+              "meta": 67,
+              "ml_architecture": 67,
+              "networking": 67,
+              "observability": 67,
+              "python_coding": 67,
+              "security": 67,
+              "system_design": 100
+            }
+          },
+          "check": null
+        }
+      }
+    },
+    {
+      "model": "Qwen3.8-27B-8bit",
+      "judge_model": "claude-opus-5-5",
+      "self_judged": false,
+      "hardware": {
+        "name": "Apple M4 Max",
+        "memory": "128 GB"
+      },
+      "is_local": true,
+      "n_runs": 1,
+      "tok_per_sec": 15.7,
+      "avg_time": 402.8,
+      "per_prompt": [
+        {
+          "id": 1,
+          "category": "multimodal",
+          "score": 1.0
+        },
+        {
+          "id": 2,
+          "category": "security",
+          "score": 2.0
+        },
+        {
+          "id": 3,
+          "category": "clojure_code",
+          "score": 2.0
+        },
+        {
+          "id": 4,
+          "category": "distributed_systems",
+          "score": 2.0
+        },
+        {
+          "id": 5,
+          "category": "ml_architecture",
+          "score": 3.0
+        },
+        {
+          "id": 6,
+          "category": "python_coding",
+          "score": 2.0
+        },
+        {
+          "id": 7,
+          "category": "business_logic",
+          "score": 3.0
+        },
+        {
+          "id": 8,
+          "category": "clojure_ecosystem",
+          "score": 0.0
+        },
+        {
+          "id": 9,
+          "category": "frontend_architecture",
+          "score": 2.0
+        },
+        {
+          "id": 10,
+          "category": "domain_knowledge",
+          "score": 3.0
+        },
+        {
+          "id": 11,
+          "category": "system_design",
+          "score": 2.0
+        },
+        {
+          "id": 12,
+          "category": "observability",
+          "score": 2.0
+        },
+        {
+          "id": 13,
+          "category": "networking",
+          "score": 2.0
+        },
+        {
+          "id": 14,
+          "category": "math_estimation",
+          "score": 2.0
+        },
+        {
+          "id": 15,
+          "category": "diagnostic_reasoning",
+          "score": 2.0
+        },
+        {
+          "id": 16,
+          "category": "meta",
+          "score": 2.0
+        },
+        {
+          "id": 17,
+          "category": "chemistry",
+          "score": 2.0
+        },
+        {
+          "id": 18,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 19,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 20,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 21,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 22,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 23,
+          "category": "assistant_competence",
+          "score": 0.0
+        }
+      ],
+      "variants": {
+        "all": {
+          "score": {
+            "pts": 44,
+            "max": 69,
+            "pct": 63.8,
+            "ci_lo": 52.2,
+            "ci_hi": 72.5,
+            "rank": 4,
+            "tied": false,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "assistant_competence": 56,
+              "business_logic": 100,
+              "chemistry": 67,
+              "clojure_code": 67,
+              "clojure_ecosystem": 0,
+              "diagnostic_reasoning": 67,
+              "distributed_systems": 67,
+              "domain_knowledge": 100,
+              "frontend_architecture": 67,
+              "math_estimation": 67,
+              "meta": 67,
+              "ml_architecture": 100,
+              "multimodal": 33,
+              "networking": 67,
+              "observability": 67,
+              "python_coding": 67,
+              "security": 67,
+              "system_design": 67
+            }
+          },
+          "check": null
+        },
+        "text": {
+          "score": {
+            "pts": 43,
+            "max": 66,
+            "pct": 65.2,
+            "ci_lo": 54.5,
+            "ci_hi": 74.2,
+            "rank": 4,
+            "tied": false,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "assistant_competence": 56,
+              "business_logic": 100,
+              "chemistry": 67,
+              "clojure_code": 67,
+              "clojure_ecosystem": 0,
+              "diagnostic_reasoning": 67,
+              "distributed_systems": 67,
+              "domain_knowledge": 100,
+              "frontend_architecture": 67,
+              "math_estimation": 67,
+              "meta": 67,
+              "ml_architecture": 100,
+              "networking": 67,
+              "observability": 67,
+              "python_coding": 67,
+              "security": 67,
+              "system_design": 67
+            }
+          },
+          "check": null
+        }
+      }
+    },
+    {
+      "model": "Qwen3.8-Flash-Next-oQ4e-mtp",
+      "judge_model": "claude-opus-5-5",
+      "self_judged": false,
+      "hardware": {
+        "name": "Apple M4 Max",
+        "memory": "128 GB"
+      },
+      "is_local": true,
+      "n_runs": 1,
+      "tok_per_sec": 68.7,
+      "avg_time": 35.7,
+      "per_prompt": [
+        {
+          "id": 1,
+          "category": "multimodal",
+          "score": 1.0
+        },
+        {
+          "id": 2,
+          "category": "security",
+          "score": 2.0
+        },
+        {
+          "id": 3,
+          "category": "clojure_code",
+          "score": 2.0
+        },
+        {
+          "id": 4,
+          "category": "distributed_systems",
+          "score": 2.0
+        },
+        {
+          "id": 5,
+          "category": "ml_architecture",
+          "score": 2.0
+        },
+        {
+          "id": 6,
+          "category": "python_coding",
+          "score": 2.0
+        },
+        {
+          "id": 7,
+          "category": "business_logic",
+          "score": 3.0
+        },
+        {
+          "id": 8,
+          "category": "clojure_ecosystem",
+          "score": 1.0
+        },
+        {
+          "id": 9,
+          "category": "frontend_architecture",
+          "score": 2.0
+        },
+        {
+          "id": 10,
+          "category": "domain_knowledge",
+          "score": 2.0
+        },
+        {
+          "id": 11,
+          "category": "system_design",
+          "score": 2.0
+        },
+        {
+          "id": 12,
+          "category": "observability",
+          "score": 2.0
+        },
+        {
+          "id": 13,
+          "category": "networking",
+          "score": 1.0
+        },
+        {
+          "id": 14,
+          "category": "math_estimation",
+          "score": 2.0
+        },
+        {
+          "id": 15,
+          "category": "diagnostic_reasoning",
+          "score": 2.0
+        },
+        {
+          "id": 16,
+          "category": "meta",
+          "score": 2.0
+        },
+        {
+          "id": 17,
+          "category": "chemistry",
+          "score": 2.0
+        },
+        {
+          "id": 18,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 19,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 20,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 21,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 22,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 23,
+          "category": "assistant_competence",
+          "score": 0.0
+        }
+      ],
+      "variants": {
+        "all": {
+          "score": {
+            "pts": 42,
+            "max": 69,
+            "pct": 60.9,
+            "ci_lo": 52.2,
+            "ci_hi": 68.1,
+            "rank": 6,
+            "tied": false,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "assistant_competence": 56,
+              "business_logic": 100,
+              "chemistry": 67,
+              "clojure_code": 67,
+              "clojure_ecosystem": 33,
+              "diagnostic_reasoning": 67,
+              "distributed_systems": 67,
+              "domain_knowledge": 67,
+              "frontend_architecture": 67,
+              "math_estimation": 67,
+              "meta": 67,
+              "ml_architecture": 67,
+              "multimodal": 33,
+              "networking": 33,
+              "observability": 67,
+              "python_coding": 67,
+              "security": 67,
+              "system_design": 67
+            }
+          },
+          "check": null
+        },
+        "text": {
+          "score": {
+            "pts": 41,
+            "max": 66,
+            "pct": 62.1,
+            "ci_lo": 53.0,
+            "ci_hi": 69.7,
+            "rank": 5,
+            "tied": false,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "assistant_competence": 56,
+              "business_logic": 100,
+              "chemistry": 67,
+              "clojure_code": 67,
+              "clojure_ecosystem": 33,
+              "diagnostic_reasoning": 67,
+              "distributed_systems": 67,
+              "domain_knowledge": 67,
+              "frontend_architecture": 67,
+              "math_estimation": 67,
+              "meta": 67,
+              "ml_architecture": 67,
+              "networking": 33,
+              "observability": 67,
+              "python_coding": 67,
+              "security": 67,
+              "system_design": 67
+            }
+          },
+          "check": null
+        }
+      }
+    },
+    {
+      "model": "gemma-4-31b-it-bf16",
+      "judge_model": "claude-opus-5-5",
+      "self_judged": false,
+      "hardware": {
+        "name": "Apple M5 Max",
+        "memory": "128 GB"
+      },
+      "is_local": true,
+      "n_runs": 1,
+      "tok_per_sec": 6.8,
+      "avg_time": 242.8,
+      "per_prompt": [
+        {
+          "id": 1,
           "category": "multimodal",
           "score": 3.0
         },
         {
+          "id": 2,
+          "category": "security",
+          "score": 2.0
+        },
+        {
+          "id": 3,
+          "category": "clojure_code",
+          "score": 1.0
+        },
+        {
+          "id": 4,
+          "category": "distributed_systems",
+          "score": 2.0
+        },
+        {
+          "id": 5,
+          "category": "ml_architecture",
+          "score": 2.0
+        },
+        {
+          "id": 6,
+          "category": "python_coding",
+          "score": 2.0
+        },
+        {
+          "id": 7,
+          "category": "business_logic",
+          "score": 2.0
+        },
+        {
+          "id": 8,
+          "category": "clojure_ecosystem",
+          "score": 1.0
+        },
+        {
+          "id": 9,
+          "category": "frontend_architecture",
+          "score": 2.0
+        },
+        {
+          "id": 10,
+          "category": "domain_knowledge",
+          "score": 2.0
+        },
+        {
+          "id": 11,
+          "category": "system_design",
+          "score": 2.0
+        },
+        {
+          "id": 12,
+          "category": "observability",
+          "score": 2.0
+        },
+        {
+          "id": 13,
+          "category": "networking",
+          "score": 2.0
+        },
+        {
+          "id": 14,
+          "category": "math_estimation",
+          "score": 2.0
+        },
+        {
+          "id": 15,
+          "category": "diagnostic_reasoning",
+          "score": 2.0
+        },
+        {
           "id": 16,
-          "category": "multimodal",
+          "category": "meta",
+          "score": 2.0
+        },
+        {
+          "id": 17,
+          "category": "chemistry",
+          "score": 2.0
+        },
+        {
+          "id": 18,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 19,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 20,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 21,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 22,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 23,
+          "category": "assistant_competence",
           "score": 1.0
         }
       ],
       "variants": {
         "all": {
+          "score": {
+            "pts": 44,
+            "max": 69,
+            "pct": 63.8,
+            "ci_lo": 58.0,
+            "ci_hi": 69.6,
+            "rank": 5,
+            "tied": false,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "assistant_competence": 61,
+              "business_logic": 67,
+              "chemistry": 67,
+              "clojure_code": 33,
+              "clojure_ecosystem": 33,
+              "diagnostic_reasoning": 67,
+              "distributed_systems": 67,
+              "domain_knowledge": 67,
+              "frontend_architecture": 67,
+              "math_estimation": 67,
+              "meta": 67,
+              "ml_architecture": 67,
+              "multimodal": 100,
+              "networking": 67,
+              "observability": 67,
+              "python_coding": 67,
+              "security": 67,
+              "system_design": 67
+            }
+          },
+          "check": null
+        },
+        "text": {
+          "score": {
+            "pts": 41,
+            "max": 66,
+            "pct": 62.1,
+            "ci_lo": 57.6,
+            "ci_hi": 66.7,
+            "rank": 6,
+            "tied": false,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "assistant_competence": 61,
+              "business_logic": 67,
+              "chemistry": 67,
+              "clojure_code": 33,
+              "clojure_ecosystem": 33,
+              "diagnostic_reasoning": 67,
+              "distributed_systems": 67,
+              "domain_knowledge": 67,
+              "frontend_architecture": 67,
+              "math_estimation": 67,
+              "meta": 67,
+              "ml_architecture": 67,
+              "networking": 67,
+              "observability": 67,
+              "python_coding": 67,
+              "security": 67,
+              "system_design": 67
+            }
+          },
+          "check": null
+        }
+      }
+    },
+    {
+      "model": "gpt-oss-120b-MXFP4-Q8",
+      "judge_model": "claude-opus-5-5",
+      "self_judged": false,
+      "hardware": {
+        "name": "Apple M5 Max",
+        "memory": "128 GB"
+      },
+      "is_local": true,
+      "n_runs": 1,
+      "tok_per_sec": 77.4,
+      "avg_time": 31.5,
+      "per_prompt": [
+        {
+          "id": 1,
+          "category": "multimodal",
+          "score": 0.0
+        },
+        {
+          "id": 2,
+          "category": "security",
+          "score": 3.0
+        },
+        {
+          "id": 3,
+          "category": "clojure_code",
+          "score": 2.0
+        },
+        {
+          "id": 4,
+          "category": "distributed_systems",
+          "score": 2.0
+        },
+        {
+          "id": 5,
+          "category": "ml_architecture",
+          "score": 2.0
+        },
+        {
+          "id": 6,
+          "category": "python_coding",
+          "score": 2.0
+        },
+        {
+          "id": 7,
+          "category": "business_logic",
+          "score": 2.0
+        },
+        {
+          "id": 8,
+          "category": "clojure_ecosystem",
+          "score": 1.0
+        },
+        {
+          "id": 9,
+          "category": "frontend_architecture",
+          "score": 2.0
+        },
+        {
+          "id": 10,
+          "category": "domain_knowledge",
+          "score": 2.0
+        },
+        {
+          "id": 11,
+          "category": "system_design",
+          "score": 2.0
+        },
+        {
+          "id": 12,
+          "category": "observability",
+          "score": 2.0
+        },
+        {
+          "id": 13,
+          "category": "networking",
+          "score": 1.0
+        },
+        {
+          "id": 14,
+          "category": "math_estimation",
+          "score": 3.0
+        },
+        {
+          "id": 15,
+          "category": "diagnostic_reasoning",
+          "score": 2.0
+        },
+        {
+          "id": 16,
+          "category": "meta",
+          "score": 2.0
+        },
+        {
+          "id": 17,
+          "category": "chemistry",
+          "score": 2.0
+        },
+        {
+          "id": 18,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 19,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 20,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 21,
+          "category": "assistant_competence",
+          "score": 0.0
+        },
+        {
+          "id": 22,
+          "category": "assistant_competence",
+          "score": 1.0
+        },
+        {
+          "id": 23,
+          "category": "assistant_competence",
+          "score": null
+        }
+      ],
+      "variants": {
+        "all": {
+          "score": {
+            "pts": 39,
+            "max": 66,
+            "pct": 59.1,
+            "ci_lo": 48.5,
+            "ci_hi": 68.2,
+            "rank": 10,
+            "tied": false,
+            "coverage": 0.957,
+            "low_coverage": false,
+            "by_category": {
+              "assistant_competence": 47,
+              "business_logic": 67,
+              "chemistry": 67,
+              "clojure_code": 67,
+              "clojure_ecosystem": 33,
+              "diagnostic_reasoning": 67,
+              "distributed_systems": 67,
+              "domain_knowledge": 67,
+              "frontend_architecture": 67,
+              "math_estimation": 100,
+              "meta": 67,
+              "ml_architecture": 67,
+              "multimodal": 0,
+              "networking": 33,
+              "observability": 67,
+              "python_coding": 67,
+              "security": 100,
+              "system_design": 67
+            }
+          },
+          "check": null
+        },
+        "text": {
+          "score": {
+            "pts": 39,
+            "max": 63,
+            "pct": 61.9,
+            "ci_lo": 52.4,
+            "ci_hi": 69.8,
+            "rank": 7,
+            "tied": false,
+            "coverage": 0.955,
+            "low_coverage": false,
+            "by_category": {
+              "assistant_competence": 47,
+              "business_logic": 67,
+              "chemistry": 67,
+              "clojure_code": 67,
+              "clojure_ecosystem": 33,
+              "diagnostic_reasoning": 67,
+              "distributed_systems": 67,
+              "domain_knowledge": 67,
+              "frontend_architecture": 67,
+              "math_estimation": 100,
+              "meta": 67,
+              "ml_architecture": 67,
+              "networking": 33,
+              "observability": 67,
+              "python_coding": 67,
+              "security": 100,
+              "system_design": 67
+            }
+          },
+          "check": null
+        }
+      }
+    },
+    {
+      "model": "Qwen3.6-35B-A3B-bf16",
+      "judge_model": "claude-opus-5-5",
+      "self_judged": false,
+      "hardware": {
+        "name": "Apple M4 Max",
+        "memory": "128 GB"
+      },
+      "is_local": true,
+      "n_runs": 1,
+      "tok_per_sec": 58.8,
+      "avg_time": 61.3,
+      "per_prompt": [
+        {
+          "id": 1,
+          "category": "multimodal",
+          "score": 1.0
+        },
+        {
+          "id": 2,
+          "category": "security",
+          "score": 2.0
+        },
+        {
+          "id": 3,
+          "category": "clojure_code",
+          "score": 2.0
+        },
+        {
+          "id": 4,
+          "category": "distributed_systems",
+          "score": 2.0
+        },
+        {
+          "id": 5,
+          "category": "ml_architecture",
+          "score": 2.0
+        },
+        {
+          "id": 6,
+          "category": "python_coding",
+          "score": 2.0
+        },
+        {
+          "id": 7,
+          "category": "business_logic",
+          "score": 2.0
+        },
+        {
+          "id": 8,
+          "category": "clojure_ecosystem",
+          "score": 0.0
+        },
+        {
+          "id": 9,
+          "category": "frontend_architecture",
+          "score": 2.0
+        },
+        {
+          "id": 10,
+          "category": "domain_knowledge",
+          "score": 2.0
+        },
+        {
+          "id": 11,
+          "category": "system_design",
+          "score": 2.0
+        },
+        {
+          "id": 12,
+          "category": "observability",
+          "score": 2.0
+        },
+        {
+          "id": 13,
+          "category": "networking",
+          "score": 1.0
+        },
+        {
+          "id": 14,
+          "category": "math_estimation",
+          "score": 3.0
+        },
+        {
+          "id": 15,
+          "category": "diagnostic_reasoning",
+          "score": 2.0
+        },
+        {
+          "id": 16,
+          "category": "meta",
+          "score": 2.0
+        },
+        {
+          "id": 17,
+          "category": "chemistry",
+          "score": 2.0
+        },
+        {
+          "id": 18,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 19,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 20,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 21,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 22,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 23,
+          "category": "assistant_competence",
+          "score": 0.0
+        }
+      ],
+      "variants": {
+        "all": {
+          "score": {
+            "pts": 41,
+            "max": 69,
+            "pct": 59.4,
+            "ci_lo": 49.3,
+            "ci_hi": 68.1,
+            "rank": 8,
+            "tied": false,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "assistant_competence": 56,
+              "business_logic": 67,
+              "chemistry": 67,
+              "clojure_code": 67,
+              "clojure_ecosystem": 0,
+              "diagnostic_reasoning": 67,
+              "distributed_systems": 67,
+              "domain_knowledge": 67,
+              "frontend_architecture": 67,
+              "math_estimation": 100,
+              "meta": 67,
+              "ml_architecture": 67,
+              "multimodal": 33,
+              "networking": 33,
+              "observability": 67,
+              "python_coding": 67,
+              "security": 67,
+              "system_design": 67
+            }
+          },
+          "check": null
+        },
+        "text": {
+          "score": {
+            "pts": 40,
+            "max": 66,
+            "pct": 60.6,
+            "ci_lo": 51.5,
+            "ci_hi": 68.2,
+            "rank": 8,
+            "tied": false,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "assistant_competence": 56,
+              "business_logic": 67,
+              "chemistry": 67,
+              "clojure_code": 67,
+              "clojure_ecosystem": 0,
+              "diagnostic_reasoning": 67,
+              "distributed_systems": 67,
+              "domain_knowledge": 67,
+              "frontend_architecture": 67,
+              "math_estimation": 100,
+              "meta": 67,
+              "ml_architecture": 67,
+              "networking": 33,
+              "observability": 67,
+              "python_coding": 67,
+              "security": 67,
+              "system_design": 67
+            }
+          },
+          "check": null
+        }
+      }
+    },
+    {
+      "model": "NVIDIA-Nemotron-3-Super-120B-A12B-4bit",
+      "judge_model": "claude-opus-5-5",
+      "self_judged": false,
+      "hardware": {
+        "name": "Apple M5 Max",
+        "memory": "128 GB"
+      },
+      "is_local": true,
+      "n_runs": 1,
+      "tok_per_sec": 51.5,
+      "avg_time": 39.2,
+      "per_prompt": [
+        {
+          "id": 1,
+          "category": "multimodal",
+          "score": 0.0
+        },
+        {
+          "id": 2,
+          "category": "security",
+          "score": 2.0
+        },
+        {
+          "id": 3,
+          "category": "clojure_code",
+          "score": 2.0
+        },
+        {
+          "id": 4,
+          "category": "distributed_systems",
+          "score": 2.0
+        },
+        {
+          "id": 5,
+          "category": "ml_architecture",
+          "score": 1.0
+        },
+        {
+          "id": 6,
+          "category": "python_coding",
+          "score": 2.0
+        },
+        {
+          "id": 7,
+          "category": "business_logic",
+          "score": 2.0
+        },
+        {
+          "id": 8,
+          "category": "clojure_ecosystem",
+          "score": 1.0
+        },
+        {
+          "id": 9,
+          "category": "frontend_architecture",
+          "score": 2.0
+        },
+        {
+          "id": 10,
+          "category": "domain_knowledge",
+          "score": 2.0
+        },
+        {
+          "id": 11,
+          "category": "system_design",
+          "score": 2.0
+        },
+        {
+          "id": 12,
+          "category": "observability",
+          "score": 2.0
+        },
+        {
+          "id": 13,
+          "category": "networking",
+          "score": 1.0
+        },
+        {
+          "id": 14,
+          "category": "math_estimation",
+          "score": 3.0
+        },
+        {
+          "id": 15,
+          "category": "diagnostic_reasoning",
+          "score": 2.0
+        },
+        {
+          "id": 16,
+          "category": "meta",
+          "score": 2.0
+        },
+        {
+          "id": 17,
+          "category": "chemistry",
+          "score": 2.0
+        },
+        {
+          "id": 18,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 19,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 20,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 21,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 22,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 23,
+          "category": "assistant_competence",
+          "score": 0.0
+        }
+      ],
+      "variants": {
+        "all": {
+          "score": {
+            "pts": 40,
+            "max": 69,
+            "pct": 58.0,
+            "ci_lo": 47.8,
+            "ci_hi": 66.7,
+            "rank": 11,
+            "tied": false,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "assistant_competence": 56,
+              "business_logic": 67,
+              "chemistry": 67,
+              "clojure_code": 67,
+              "clojure_ecosystem": 33,
+              "diagnostic_reasoning": 67,
+              "distributed_systems": 67,
+              "domain_knowledge": 67,
+              "frontend_architecture": 67,
+              "math_estimation": 100,
+              "meta": 67,
+              "ml_architecture": 33,
+              "multimodal": 0,
+              "networking": 33,
+              "observability": 67,
+              "python_coding": 67,
+              "security": 67,
+              "system_design": 67
+            }
+          },
+          "check": null
+        },
+        "text": {
+          "score": {
+            "pts": 40,
+            "max": 66,
+            "pct": 60.6,
+            "ci_lo": 51.5,
+            "ci_hi": 68.2,
+            "rank": 9,
+            "tied": false,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "assistant_competence": 56,
+              "business_logic": 67,
+              "chemistry": 67,
+              "clojure_code": 67,
+              "clojure_ecosystem": 33,
+              "diagnostic_reasoning": 67,
+              "distributed_systems": 67,
+              "domain_knowledge": 67,
+              "frontend_architecture": 67,
+              "math_estimation": 100,
+              "meta": 67,
+              "ml_architecture": 33,
+              "networking": 33,
+              "observability": 67,
+              "python_coding": 67,
+              "security": 67,
+              "system_design": 67
+            }
+          },
+          "check": null
+        }
+      }
+    },
+    {
+      "model": "Qwen3.5-122B-A10B-4bit",
+      "judge_model": "claude-opus-5-5",
+      "self_judged": false,
+      "hardware": {
+        "name": "Apple M5 Max",
+        "memory": "128 GB"
+      },
+      "is_local": true,
+      "n_runs": 1,
+      "tok_per_sec": 50.8,
+      "avg_time": 65.8,
+      "per_prompt": [
+        {
+          "id": 1,
+          "category": "multimodal",
+          "score": 2.0
+        },
+        {
+          "id": 2,
+          "category": "security",
+          "score": 2.0
+        },
+        {
+          "id": 3,
+          "category": "clojure_code",
+          "score": 2.0
+        },
+        {
+          "id": 4,
+          "category": "distributed_systems",
+          "score": 2.0
+        },
+        {
+          "id": 5,
+          "category": "ml_architecture",
+          "score": 2.0
+        },
+        {
+          "id": 6,
+          "category": "python_coding",
+          "score": 2.0
+        },
+        {
+          "id": 7,
+          "category": "business_logic",
+          "score": 2.0
+        },
+        {
+          "id": 8,
+          "category": "clojure_ecosystem",
+          "score": 1.0
+        },
+        {
+          "id": 9,
+          "category": "frontend_architecture",
+          "score": 1.0
+        },
+        {
+          "id": 10,
+          "category": "domain_knowledge",
+          "score": 3.0
+        },
+        {
+          "id": 11,
+          "category": "system_design",
+          "score": 2.0
+        },
+        {
+          "id": 12,
+          "category": "observability",
+          "score": 2.0
+        },
+        {
+          "id": 13,
+          "category": "networking",
+          "score": 1.0
+        },
+        {
+          "id": 14,
+          "category": "math_estimation",
+          "score": 2.0
+        },
+        {
+          "id": 15,
+          "category": "diagnostic_reasoning",
+          "score": 2.0
+        },
+        {
+          "id": 16,
+          "category": "meta",
+          "score": 2.0
+        },
+        {
+          "id": 17,
+          "category": "chemistry",
+          "score": 2.0
+        },
+        {
+          "id": 18,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 19,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 20,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 21,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 22,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 23,
+          "category": "assistant_competence",
+          "score": 0.0
+        }
+      ],
+      "variants": {
+        "all": {
+          "score": {
+            "pts": 42,
+            "max": 69,
+            "pct": 60.9,
+            "ci_lo": 52.2,
+            "ci_hi": 68.1,
+            "rank": 7,
+            "tied": false,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "assistant_competence": 56,
+              "business_logic": 67,
+              "chemistry": 67,
+              "clojure_code": 67,
+              "clojure_ecosystem": 33,
+              "diagnostic_reasoning": 67,
+              "distributed_systems": 67,
+              "domain_knowledge": 100,
+              "frontend_architecture": 33,
+              "math_estimation": 67,
+              "meta": 67,
+              "ml_architecture": 67,
+              "multimodal": 67,
+              "networking": 33,
+              "observability": 67,
+              "python_coding": 67,
+              "security": 67,
+              "system_design": 67
+            }
+          },
+          "check": null
+        },
+        "text": {
+          "score": {
+            "pts": 40,
+            "max": 66,
+            "pct": 60.6,
+            "ci_lo": 51.5,
+            "ci_hi": 68.2,
+            "rank": 10,
+            "tied": false,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "assistant_competence": 56,
+              "business_logic": 67,
+              "chemistry": 67,
+              "clojure_code": 67,
+              "clojure_ecosystem": 33,
+              "diagnostic_reasoning": 67,
+              "distributed_systems": 67,
+              "domain_knowledge": 100,
+              "frontend_architecture": 33,
+              "math_estimation": 67,
+              "meta": 67,
+              "ml_architecture": 67,
+              "networking": 33,
+              "observability": 67,
+              "python_coding": 67,
+              "security": 67,
+              "system_design": 67
+            }
+          },
+          "check": null
+        }
+      }
+    },
+    {
+      "model": "Qwen3.6-27B-4bit",
+      "judge_model": "claude-opus-5-5",
+      "self_judged": false,
+      "hardware": {
+        "name": "Apple M5 Max",
+        "memory": "128 GB"
+      },
+      "is_local": true,
+      "n_runs": 1,
+      "tok_per_sec": 26.4,
+      "avg_time": 175.1,
+      "per_prompt": [
+        {
+          "id": 1,
+          "category": "multimodal",
+          "score": 1.0
+        },
+        {
+          "id": 2,
+          "category": "security",
+          "score": 2.0
+        },
+        {
+          "id": 3,
+          "category": "clojure_code",
+          "score": 1.0
+        },
+        {
+          "id": 4,
+          "category": "distributed_systems",
+          "score": 2.0
+        },
+        {
+          "id": 5,
+          "category": "ml_architecture",
+          "score": 1.0
+        },
+        {
+          "id": 6,
+          "category": "python_coding",
+          "score": 2.0
+        },
+        {
+          "id": 7,
+          "category": "business_logic",
+          "score": 2.0
+        },
+        {
+          "id": 8,
+          "category": "clojure_ecosystem",
+          "score": 0.0
+        },
+        {
+          "id": 9,
+          "category": "frontend_architecture",
+          "score": 2.0
+        },
+        {
+          "id": 10,
+          "category": "domain_knowledge",
+          "score": 3.0
+        },
+        {
+          "id": 11,
+          "category": "system_design",
+          "score": 2.0
+        },
+        {
+          "id": 12,
+          "category": "observability",
+          "score": 2.0
+        },
+        {
+          "id": 13,
+          "category": "networking",
+          "score": 2.0
+        },
+        {
+          "id": 14,
+          "category": "math_estimation",
+          "score": 2.0
+        },
+        {
+          "id": 15,
+          "category": "diagnostic_reasoning",
+          "score": 2.0
+        },
+        {
+          "id": 16,
+          "category": "meta",
+          "score": 2.0
+        },
+        {
+          "id": 17,
+          "category": "chemistry",
+          "score": 2.0
+        },
+        {
+          "id": 18,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 19,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 20,
+          "category": "assistant_competence",
+          "score": 3.0
+        },
+        {
+          "id": 21,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 22,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 23,
+          "category": "assistant_competence",
+          "score": 0.0
+        }
+      ],
+      "variants": {
+        "all": {
+          "score": {
+            "pts": 41,
+            "max": 69,
+            "pct": 59.4,
+            "ci_lo": 49.3,
+            "ci_hi": 69.6,
+            "rank": 9,
+            "tied": false,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "assistant_competence": 61,
+              "business_logic": 67,
+              "chemistry": 67,
+              "clojure_code": 33,
+              "clojure_ecosystem": 0,
+              "diagnostic_reasoning": 67,
+              "distributed_systems": 67,
+              "domain_knowledge": 100,
+              "frontend_architecture": 67,
+              "math_estimation": 67,
+              "meta": 67,
+              "ml_architecture": 33,
+              "multimodal": 33,
+              "networking": 67,
+              "observability": 67,
+              "python_coding": 67,
+              "security": 67,
+              "system_design": 67
+            }
+          },
+          "check": null
+        },
+        "text": {
+          "score": {
+            "pts": 40,
+            "max": 66,
+            "pct": 60.6,
+            "ci_lo": 50.0,
+            "ci_hi": 69.7,
+            "rank": 11,
+            "tied": false,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "assistant_competence": 61,
+              "business_logic": 67,
+              "chemistry": 67,
+              "clojure_code": 33,
+              "clojure_ecosystem": 0,
+              "diagnostic_reasoning": 67,
+              "distributed_systems": 67,
+              "domain_knowledge": 100,
+              "frontend_architecture": 67,
+              "math_estimation": 67,
+              "meta": 67,
+              "ml_architecture": 33,
+              "networking": 67,
+              "observability": 67,
+              "python_coding": 67,
+              "security": 67,
+              "system_design": 67
+            }
+          },
+          "check": null
+        }
+      }
+    },
+    {
+      "model": "Qwen3.6-27B-bf16",
+      "judge_model": "claude-opus-5-5",
+      "self_judged": false,
+      "hardware": {
+        "name": "Apple M5 Max",
+        "memory": "128 GB"
+      },
+      "is_local": true,
+      "n_runs": 1,
+      "tok_per_sec": 8.7,
+      "avg_time": 470.9,
+      "per_prompt": [
+        {
+          "id": 1,
+          "category": "multimodal",
+          "score": 1.0
+        },
+        {
+          "id": 2,
+          "category": "security",
+          "score": 2.0
+        },
+        {
+          "id": 3,
+          "category": "clojure_code",
+          "score": 2.0
+        },
+        {
+          "id": 4,
+          "category": "distributed_systems",
+          "score": 1.0
+        },
+        {
+          "id": 5,
+          "category": "ml_architecture",
+          "score": 2.0
+        },
+        {
+          "id": 6,
+          "category": "python_coding",
+          "score": 2.0
+        },
+        {
+          "id": 7,
+          "category": "business_logic",
+          "score": 2.0
+        },
+        {
+          "id": 8,
+          "category": "clojure_ecosystem",
+          "score": 1.0
+        },
+        {
+          "id": 9,
+          "category": "frontend_architecture",
+          "score": 2.0
+        },
+        {
+          "id": 10,
+          "category": "domain_knowledge",
+          "score": 2.0
+        },
+        {
+          "id": 11,
+          "category": "system_design",
+          "score": 2.0
+        },
+        {
+          "id": 12,
+          "category": "observability",
+          "score": 2.0
+        },
+        {
+          "id": 13,
+          "category": "networking",
+          "score": 1.0
+        },
+        {
+          "id": 14,
+          "category": "math_estimation",
+          "score": 2.0
+        },
+        {
+          "id": 15,
+          "category": "diagnostic_reasoning",
+          "score": 2.0
+        },
+        {
+          "id": 16,
+          "category": "meta",
+          "score": 2.0
+        },
+        {
+          "id": 17,
+          "category": "chemistry",
+          "score": 2.0
+        },
+        {
+          "id": 18,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 19,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 20,
+          "category": "assistant_competence",
+          "score": 1.0
+        },
+        {
+          "id": 21,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 22,
+          "category": "assistant_competence",
+          "score": 3.0
+        },
+        {
+          "id": 23,
+          "category": "assistant_competence",
+          "score": 0.0
+        }
+      ],
+      "variants": {
+        "all": {
+          "score": {
+            "pts": 40,
+            "max": 69,
+            "pct": 58.0,
+            "ci_lo": 49.3,
+            "ci_hi": 65.2,
+            "rank": 12,
+            "tied": false,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "assistant_competence": 56,
+              "business_logic": 67,
+              "chemistry": 67,
+              "clojure_code": 67,
+              "clojure_ecosystem": 33,
+              "diagnostic_reasoning": 67,
+              "distributed_systems": 33,
+              "domain_knowledge": 67,
+              "frontend_architecture": 67,
+              "math_estimation": 67,
+              "meta": 67,
+              "ml_architecture": 67,
+              "multimodal": 33,
+              "networking": 33,
+              "observability": 67,
+              "python_coding": 67,
+              "security": 67,
+              "system_design": 67
+            }
+          },
+          "check": null
+        },
+        "text": {
+          "score": {
+            "pts": 39,
+            "max": 66,
+            "pct": 59.1,
+            "ci_lo": 50.0,
+            "ci_hi": 66.7,
+            "rank": 12,
+            "tied": false,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "assistant_competence": 56,
+              "business_logic": 67,
+              "chemistry": 67,
+              "clojure_code": 67,
+              "clojure_ecosystem": 33,
+              "diagnostic_reasoning": 67,
+              "distributed_systems": 33,
+              "domain_knowledge": 67,
+              "frontend_architecture": 67,
+              "math_estimation": 67,
+              "meta": 67,
+              "ml_architecture": 67,
+              "networking": 33,
+              "observability": 67,
+              "python_coding": 67,
+              "security": 67,
+              "system_design": 67
+            }
+          },
+          "check": null
+        }
+      }
+    },
+    {
+      "model": "Ornith-1.5-35B-A3B-MLX",
+      "judge_model": "claude-opus-5-5",
+      "self_judged": false,
+      "hardware": {
+        "name": "Apple M4 Max",
+        "memory": "128 GB"
+      },
+      "is_local": true,
+      "n_runs": 1,
+      "tok_per_sec": 58.7,
+      "avg_time": 72.7,
+      "per_prompt": [
+        {
+          "id": 1,
+          "category": "multimodal",
+          "score": 0.0
+        },
+        {
+          "id": 2,
+          "category": "security",
+          "score": 2.0
+        },
+        {
+          "id": 3,
+          "category": "clojure_code",
+          "score": 2.0
+        },
+        {
+          "id": 4,
+          "category": "distributed_systems",
+          "score": 2.0
+        },
+        {
+          "id": 5,
+          "category": "ml_architecture",
+          "score": 1.0
+        },
+        {
+          "id": 6,
+          "category": "python_coding",
+          "score": 2.0
+        },
+        {
+          "id": 7,
+          "category": "business_logic",
+          "score": 2.0
+        },
+        {
+          "id": 8,
+          "category": "clojure_ecosystem",
+          "score": 0.0
+        },
+        {
+          "id": 9,
+          "category": "frontend_architecture",
+          "score": 1.0
+        },
+        {
+          "id": 10,
+          "category": "domain_knowledge",
+          "score": 2.0
+        },
+        {
+          "id": 11,
+          "category": "system_design",
+          "score": 2.0
+        },
+        {
+          "id": 12,
+          "category": "observability",
+          "score": 1.0
+        },
+        {
+          "id": 13,
+          "category": "networking",
+          "score": 2.0
+        },
+        {
+          "id": 14,
+          "category": "math_estimation",
+          "score": 3.0
+        },
+        {
+          "id": 15,
+          "category": "diagnostic_reasoning",
+          "score": 2.0
+        },
+        {
+          "id": 16,
+          "category": "meta",
+          "score": 2.0
+        },
+        {
+          "id": 17,
+          "category": "chemistry",
+          "score": 3.0
+        },
+        {
+          "id": 18,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 19,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 20,
+          "category": "assistant_competence",
+          "score": 1.0
+        },
+        {
+          "id": 21,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 22,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 23,
+          "category": "assistant_competence",
+          "score": 0.0
+        }
+      ],
+      "variants": {
+        "all": {
+          "score": {
+            "pts": 38,
+            "max": 69,
+            "pct": 55.1,
+            "ci_lo": 43.5,
+            "ci_hi": 65.2,
+            "rank": 16,
+            "tied": false,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "assistant_competence": 50,
+              "business_logic": 67,
+              "chemistry": 100,
+              "clojure_code": 67,
+              "clojure_ecosystem": 0,
+              "diagnostic_reasoning": 67,
+              "distributed_systems": 67,
+              "domain_knowledge": 67,
+              "frontend_architecture": 33,
+              "math_estimation": 100,
+              "meta": 67,
+              "ml_architecture": 33,
+              "multimodal": 0,
+              "networking": 67,
+              "observability": 33,
+              "python_coding": 67,
+              "security": 67,
+              "system_design": 67
+            }
+          },
+          "check": null
+        },
+        "text": {
+          "score": {
+            "pts": 38,
+            "max": 66,
+            "pct": 57.6,
+            "ci_lo": 47.0,
+            "ci_hi": 68.2,
+            "rank": 13,
+            "tied": false,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "assistant_competence": 50,
+              "business_logic": 67,
+              "chemistry": 100,
+              "clojure_code": 67,
+              "clojure_ecosystem": 0,
+              "diagnostic_reasoning": 67,
+              "distributed_systems": 67,
+              "domain_knowledge": 67,
+              "frontend_architecture": 33,
+              "math_estimation": 100,
+              "meta": 67,
+              "ml_architecture": 33,
+              "networking": 67,
+              "observability": 33,
+              "python_coding": 67,
+              "security": 67,
+              "system_design": 67
+            }
+          },
+          "check": null
+        }
+      }
+    },
+    {
+      "model": "ornith-35b-bf16",
+      "judge_model": "claude-opus-5-5",
+      "self_judged": false,
+      "hardware": {
+        "name": "Apple M4 Max",
+        "memory": "128 GB"
+      },
+      "is_local": true,
+      "n_runs": 1,
+      "tok_per_sec": 52.0,
+      "avg_time": 69.3,
+      "per_prompt": [
+        {
+          "id": 1,
+          "category": "multimodal",
+          "score": null
+        },
+        {
+          "id": 2,
+          "category": "security",
+          "score": 1.0
+        },
+        {
+          "id": 3,
+          "category": "clojure_code",
+          "score": 2.0
+        },
+        {
+          "id": 4,
+          "category": "distributed_systems",
+          "score": 2.0
+        },
+        {
+          "id": 5,
+          "category": "ml_architecture",
+          "score": 1.0
+        },
+        {
+          "id": 6,
+          "category": "python_coding",
+          "score": 2.0
+        },
+        {
+          "id": 7,
+          "category": "business_logic",
+          "score": 3.0
+        },
+        {
+          "id": 8,
+          "category": "clojure_ecosystem",
+          "score": 0.0
+        },
+        {
+          "id": 9,
+          "category": "frontend_architecture",
+          "score": 2.0
+        },
+        {
+          "id": 10,
+          "category": "domain_knowledge",
+          "score": 1.0
+        },
+        {
+          "id": 11,
+          "category": "system_design",
+          "score": 2.0
+        },
+        {
+          "id": 12,
+          "category": "observability",
+          "score": 2.0
+        },
+        {
+          "id": 13,
+          "category": "networking",
+          "score": 2.0
+        },
+        {
+          "id": 14,
+          "category": "math_estimation",
+          "score": 2.0
+        },
+        {
+          "id": 15,
+          "category": "diagnostic_reasoning",
+          "score": 2.0
+        },
+        {
+          "id": 16,
+          "category": "meta",
+          "score": 2.0
+        },
+        {
+          "id": 17,
+          "category": "chemistry",
+          "score": 2.0
+        },
+        {
+          "id": 18,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 19,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 20,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 21,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 22,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 23,
+          "category": "assistant_competence",
+          "score": 0.0
+        }
+      ],
+      "variants": {
+        "all": {
+          "score": {
+            "pts": 38,
+            "max": 66,
+            "pct": 57.6,
+            "ci_lo": 47.0,
+            "ci_hi": 66.7,
+            "rank": 13,
+            "tied": false,
+            "coverage": 0.957,
+            "low_coverage": false,
+            "by_category": {
+              "assistant_competence": 56,
+              "business_logic": 100,
+              "chemistry": 67,
+              "clojure_code": 67,
+              "clojure_ecosystem": 0,
+              "diagnostic_reasoning": 67,
+              "distributed_systems": 67,
+              "domain_knowledge": 33,
+              "frontend_architecture": 67,
+              "math_estimation": 67,
+              "meta": 67,
+              "ml_architecture": 33,
+              "multimodal": null,
+              "networking": 67,
+              "observability": 67,
+              "python_coding": 67,
+              "security": 33,
+              "system_design": 67
+            }
+          },
+          "check": null
+        },
+        "text": {
+          "score": {
+            "pts": 38,
+            "max": 66,
+            "pct": 57.6,
+            "ci_lo": 47.0,
+            "ci_hi": 66.7,
+            "rank": 14,
+            "tied": false,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "assistant_competence": 56,
+              "business_logic": 100,
+              "chemistry": 67,
+              "clojure_code": 67,
+              "clojure_ecosystem": 0,
+              "diagnostic_reasoning": 67,
+              "distributed_systems": 67,
+              "domain_knowledge": 33,
+              "frontend_architecture": 67,
+              "math_estimation": 67,
+              "meta": 67,
+              "ml_architecture": 33,
+              "networking": 67,
+              "observability": 67,
+              "python_coding": 67,
+              "security": 33,
+              "system_design": 67
+            }
+          },
+          "check": null
+        }
+      }
+    },
+    {
+      "model": "DeepSeek-V4-Flash-0731-oQ2e",
+      "judge_model": "claude-opus-5-5",
+      "self_judged": false,
+      "hardware": {
+        "name": "Apple M4 Max",
+        "memory": "128 GB"
+      },
+      "is_local": true,
+      "n_runs": 1,
+      "tok_per_sec": 27.3,
+      "avg_time": 133.0,
+      "per_prompt": [
+        {
+          "id": 1,
+          "category": "multimodal",
+          "score": 0.0
+        },
+        {
+          "id": 2,
+          "category": "security",
+          "score": 2.0
+        },
+        {
+          "id": 3,
+          "category": "clojure_code",
+          "score": 2.0
+        },
+        {
+          "id": 4,
+          "category": "distributed_systems",
+          "score": 2.0
+        },
+        {
+          "id": 5,
+          "category": "ml_architecture",
+          "score": 2.0
+        },
+        {
+          "id": 6,
+          "category": "python_coding",
+          "score": 2.0
+        },
+        {
+          "id": 7,
+          "category": "business_logic",
+          "score": 2.0
+        },
+        {
+          "id": 8,
+          "category": "clojure_ecosystem",
+          "score": 1.0
+        },
+        {
+          "id": 9,
+          "category": "frontend_architecture",
+          "score": 2.0
+        },
+        {
+          "id": 10,
+          "category": "domain_knowledge",
+          "score": 1.0
+        },
+        {
+          "id": 11,
+          "category": "system_design",
+          "score": 2.0
+        },
+        {
+          "id": 12,
+          "category": "observability",
+          "score": 2.0
+        },
+        {
+          "id": 13,
+          "category": "networking",
+          "score": 1.0
+        },
+        {
+          "id": 14,
+          "category": "math_estimation",
+          "score": 2.0
+        },
+        {
+          "id": 15,
+          "category": "diagnostic_reasoning",
+          "score": 2.0
+        },
+        {
+          "id": 16,
+          "category": "meta",
+          "score": 2.0
+        },
+        {
+          "id": 17,
+          "category": "chemistry",
+          "score": 2.0
+        },
+        {
+          "id": 18,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 19,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 20,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 21,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 22,
+          "category": "assistant_competence",
+          "score": 1.0
+        },
+        {
+          "id": 23,
+          "category": "assistant_competence",
+          "score": 0.0
+        }
+      ],
+      "variants": {
+        "all": {
+          "score": {
+            "pts": 38,
+            "max": 69,
+            "pct": 55.1,
+            "ci_lo": 46.4,
+            "ci_hi": 62.3,
+            "rank": 17,
+            "tied": false,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "assistant_competence": 50,
+              "business_logic": 67,
+              "chemistry": 67,
+              "clojure_code": 67,
+              "clojure_ecosystem": 33,
+              "diagnostic_reasoning": 67,
+              "distributed_systems": 67,
+              "domain_knowledge": 33,
+              "frontend_architecture": 67,
+              "math_estimation": 67,
+              "meta": 67,
+              "ml_architecture": 67,
+              "multimodal": 0,
+              "networking": 33,
+              "observability": 67,
+              "python_coding": 67,
+              "security": 67,
+              "system_design": 67
+            }
+          },
+          "check": null
+        },
+        "text": {
+          "score": {
+            "pts": 38,
+            "max": 66,
+            "pct": 57.6,
+            "ci_lo": 50.0,
+            "ci_hi": 63.6,
+            "rank": 15,
+            "tied": false,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "assistant_competence": 50,
+              "business_logic": 67,
+              "chemistry": 67,
+              "clojure_code": 67,
+              "clojure_ecosystem": 33,
+              "diagnostic_reasoning": 67,
+              "distributed_systems": 67,
+              "domain_knowledge": 33,
+              "frontend_architecture": 67,
+              "math_estimation": 67,
+              "meta": 67,
+              "ml_architecture": 67,
+              "networking": 33,
+              "observability": 67,
+              "python_coding": 67,
+              "security": 67,
+              "system_design": 67
+            }
+          },
+          "check": null
+        }
+      }
+    },
+    {
+      "model": "gemma-4-26b-a4b-it-bf16",
+      "judge_model": "claude-opus-5-5",
+      "self_judged": false,
+      "hardware": {
+        "name": "Apple M5 Max",
+        "memory": "128 GB"
+      },
+      "is_local": true,
+      "n_runs": 1,
+      "tok_per_sec": 47.1,
+      "avg_time": 75.3,
+      "per_prompt": [
+        {
+          "id": 1,
+          "category": "multimodal",
+          "score": 2.0
+        },
+        {
+          "id": 2,
+          "category": "security",
+          "score": 2.0
+        },
+        {
+          "id": 3,
+          "category": "clojure_code",
+          "score": 0.0
+        },
+        {
+          "id": 4,
+          "category": "distributed_systems",
+          "score": 2.0
+        },
+        {
+          "id": 5,
+          "category": "ml_architecture",
+          "score": 1.0
+        },
+        {
+          "id": 6,
+          "category": "python_coding",
+          "score": 2.0
+        },
+        {
+          "id": 7,
+          "category": "business_logic",
+          "score": 2.0
+        },
+        {
+          "id": 8,
+          "category": "clojure_ecosystem",
+          "score": 0.0
+        },
+        {
+          "id": 9,
+          "category": "frontend_architecture",
+          "score": 2.0
+        },
+        {
+          "id": 10,
+          "category": "domain_knowledge",
+          "score": 2.0
+        },
+        {
+          "id": 11,
+          "category": "system_design",
+          "score": 2.0
+        },
+        {
+          "id": 12,
+          "category": "observability",
+          "score": 2.0
+        },
+        {
+          "id": 13,
+          "category": "networking",
+          "score": 2.0
+        },
+        {
+          "id": 14,
+          "category": "math_estimation",
+          "score": 2.0
+        },
+        {
+          "id": 15,
+          "category": "diagnostic_reasoning",
+          "score": 2.0
+        },
+        {
+          "id": 16,
+          "category": "meta",
+          "score": 2.0
+        },
+        {
+          "id": 17,
+          "category": "chemistry",
+          "score": 2.0
+        },
+        {
+          "id": 18,
+          "category": "assistant_competence",
+          "score": null
+        },
+        {
+          "id": 19,
+          "category": "assistant_competence",
+          "score": null
+        },
+        {
+          "id": 20,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 21,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 22,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 23,
+          "category": "assistant_competence",
+          "score": 1.0
+        }
+      ],
+      "variants": {
+        "all": {
+          "score": {
+            "pts": 36,
+            "max": 63,
+            "pct": 57.1,
+            "ci_lo": 46.0,
+            "ci_hi": 65.1,
+            "rank": 14,
+            "tied": false,
+            "coverage": 0.913,
+            "low_coverage": false,
+            "by_category": {
+              "assistant_competence": 58,
+              "business_logic": 67,
+              "chemistry": 67,
+              "clojure_code": 0,
+              "clojure_ecosystem": 0,
+              "diagnostic_reasoning": 67,
+              "distributed_systems": 67,
+              "domain_knowledge": 67,
+              "frontend_architecture": 67,
+              "math_estimation": 67,
+              "meta": 67,
+              "ml_architecture": 33,
+              "multimodal": 67,
+              "networking": 67,
+              "observability": 67,
+              "python_coding": 67,
+              "security": 67,
+              "system_design": 67
+            }
+          },
+          "check": null
+        },
+        "text": {
+          "score": {
+            "pts": 34,
+            "max": 60,
+            "pct": 56.7,
+            "ci_lo": 46.7,
+            "ci_hi": 65.0,
+            "rank": 16,
+            "tied": false,
+            "coverage": 0.909,
+            "low_coverage": false,
+            "by_category": {
+              "assistant_competence": 58,
+              "business_logic": 67,
+              "chemistry": 67,
+              "clojure_code": 0,
+              "clojure_ecosystem": 0,
+              "diagnostic_reasoning": 67,
+              "distributed_systems": 67,
+              "domain_knowledge": 67,
+              "frontend_architecture": 67,
+              "math_estimation": 67,
+              "meta": 67,
+              "ml_architecture": 33,
+              "networking": 67,
+              "observability": 67,
+              "python_coding": 67,
+              "security": 67,
+              "system_design": 67
+            }
+          },
+          "check": null
+        }
+      }
+    },
+    {
+      "model": "Qwen3.6-35B-A3B-Uncensored-Heretic-MLX-8bit",
+      "judge_model": "claude-opus-5-5",
+      "self_judged": false,
+      "hardware": {
+        "name": "Apple M4 Max",
+        "memory": "128 GB"
+      },
+      "is_local": true,
+      "n_runs": 1,
+      "tok_per_sec": 81.6,
+      "avg_time": 42.3,
+      "per_prompt": [
+        {
+          "id": 1,
+          "category": "multimodal",
+          "score": 2.0
+        },
+        {
+          "id": 2,
+          "category": "security",
+          "score": 0.0
+        },
+        {
+          "id": 3,
+          "category": "clojure_code",
+          "score": 2.0
+        },
+        {
+          "id": 4,
+          "category": "distributed_systems",
+          "score": 2.0
+        },
+        {
+          "id": 5,
+          "category": "ml_architecture",
+          "score": 2.0
+        },
+        {
+          "id": 6,
+          "category": "python_coding",
+          "score": 2.0
+        },
+        {
+          "id": 7,
+          "category": "business_logic",
+          "score": 2.0
+        },
+        {
+          "id": 8,
+          "category": "clojure_ecosystem",
+          "score": 1.0
+        },
+        {
+          "id": 9,
+          "category": "frontend_architecture",
+          "score": 1.0
+        },
+        {
+          "id": 10,
+          "category": "domain_knowledge",
+          "score": 2.0
+        },
+        {
+          "id": 11,
+          "category": "system_design",
+          "score": 2.0
+        },
+        {
+          "id": 12,
+          "category": "observability",
+          "score": 2.0
+        },
+        {
+          "id": 13,
+          "category": "networking",
+          "score": 1.0
+        },
+        {
+          "id": 14,
+          "category": "math_estimation",
+          "score": 2.0
+        },
+        {
+          "id": 15,
+          "category": "diagnostic_reasoning",
+          "score": 2.0
+        },
+        {
+          "id": 16,
+          "category": "meta",
+          "score": 2.0
+        },
+        {
+          "id": 17,
+          "category": "chemistry",
+          "score": 2.0
+        },
+        {
+          "id": 18,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 19,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 20,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 21,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 22,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 23,
+          "category": "assistant_competence",
+          "score": 0.0
+        }
+      ],
+      "variants": {
+        "all": {
+          "score": {
+            "pts": 39,
+            "max": 69,
+            "pct": 56.5,
+            "ci_lo": 47.8,
+            "ci_hi": 63.8,
+            "rank": 15,
+            "tied": false,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "assistant_competence": 56,
+              "business_logic": 67,
+              "chemistry": 67,
+              "clojure_code": 67,
+              "clojure_ecosystem": 33,
+              "diagnostic_reasoning": 67,
+              "distributed_systems": 67,
+              "domain_knowledge": 67,
+              "frontend_architecture": 33,
+              "math_estimation": 67,
+              "meta": 67,
+              "ml_architecture": 67,
+              "multimodal": 67,
+              "networking": 33,
+              "observability": 67,
+              "python_coding": 67,
+              "security": 0,
+              "system_design": 67
+            }
+          },
+          "check": null
+        },
+        "text": {
           "score": {
             "pts": 37,
-            "max": 48,
-            "pct": 77.1,
-            "ci_lo": 64.6,
-            "ci_hi": 89.6,
-            "rank": 1,
-            "tied": true,
+            "max": 66,
+            "pct": 56.1,
+            "ci_lo": 47.0,
+            "ci_hi": 63.6,
+            "rank": 17,
+            "tied": false,
             "coverage": 1.0,
             "low_coverage": false,
             "by_category": {
-              "fixture_code": 75,
-              "fixture_format": 78,
-              "fixture_knowledge": 89,
-              "fixture_reasoning": 75,
-              "multimodal": 67
+              "assistant_competence": 56,
+              "business_logic": 67,
+              "chemistry": 67,
+              "clojure_code": 67,
+              "clojure_ecosystem": 33,
+              "diagnostic_reasoning": 67,
+              "distributed_systems": 67,
+              "domain_knowledge": 67,
+              "frontend_architecture": 33,
+              "math_estimation": 67,
+              "meta": 67,
+              "ml_architecture": 67,
+              "networking": 33,
+              "observability": 67,
+              "python_coding": 67,
+              "security": 0,
+              "system_design": 67
             }
           },
-          "check": {
-            "pct": 76.1,
-            "ci_lo": 60.7,
-            "ci_hi": 89.6,
-            "rank": 1,
-            "tied": true,
-            "coverage": 1.0,
-            "low_coverage": false,
-            "by_category": {
-              "fixture_code": 68,
-              "fixture_format": 72,
-              "fixture_knowledge": 94,
-              "fixture_reasoning": 82,
-              "multimodal": 61
-            }
-          }
-        },
-        "text": {
-          "score": {
-            "pts": 33,
-            "max": 42,
-            "pct": 78.6,
-            "ci_lo": 64.3,
-            "ci_hi": 90.5,
-            "rank": 1,
-            "tied": true,
-            "coverage": 1.0,
-            "low_coverage": false,
-            "by_category": {
-              "fixture_code": 75,
-              "fixture_format": 78,
-              "fixture_knowledge": 89,
-              "fixture_reasoning": 75
-            }
-          },
-          "check": {
-            "pct": 78.4,
-            "ci_lo": 63.5,
-            "ci_hi": 90.9,
-            "rank": 1,
-            "tied": true,
-            "coverage": 1.0,
-            "low_coverage": false,
-            "by_category": {
-              "fixture_code": 68,
-              "fixture_format": 72,
-              "fixture_knowledge": 94,
-              "fixture_reasoning": 82
-            }
-          }
+          "check": null
         }
       }
     },
     {
-      "model": "example-model-gamma-8b",
-      "judge_model": "fixture-judge-1",
+      "model": "flint-oQ8e",
+      "judge_model": "claude-opus-5-5",
       "self_judged": false,
       "hardware": {
-        "name": "Fixture Chip A",
-        "memory": "64 GB"
+        "name": "Apple M4 Max",
+        "memory": "128 GB"
       },
       "is_local": true,
       "n_runs": 1,
-      "tok_per_sec": 96.5,
-      "avg_time": 20.7,
+      "tok_per_sec": 84.6,
+      "avg_time": 50.0,
       "per_prompt": [
         {
           "id": 1,
-          "category": "fixture_code",
-          "score": 2.0
+          "category": "multimodal",
+          "score": null
         },
         {
           "id": 2,
-          "category": "fixture_code",
-          "score": 2.0
+          "category": "security",
+          "score": 0.0
         },
         {
           "id": 3,
-          "category": "fixture_code",
+          "category": "clojure_code",
           "score": 1.0
         },
         {
           "id": 4,
-          "category": "fixture_code",
-          "score": 0.0
-        },
-        {
-          "id": 5,
-          "category": "fixture_reasoning",
-          "score": 2.0
-        },
-        {
-          "id": 6,
-          "category": "fixture_reasoning",
-          "score": 1.0
-        },
-        {
-          "id": 7,
-          "category": "fixture_reasoning",
-          "score": 2.0
-        },
-        {
-          "id": 8,
-          "category": "fixture_reasoning",
-          "score": 1.0
-        },
-        {
-          "id": 9,
-          "category": "fixture_knowledge",
-          "score": 2.0
-        },
-        {
-          "id": 10,
-          "category": "fixture_knowledge",
-          "score": 2.0
-        },
-        {
-          "id": 11,
-          "category": "fixture_knowledge",
-          "score": 3.0
-        },
-        {
-          "id": 12,
-          "category": "fixture_format",
-          "score": 1.0
-        },
-        {
-          "id": 13,
-          "category": "fixture_format",
-          "score": 3.0
-        },
-        {
-          "id": 14,
-          "category": "fixture_format",
-          "score": 1.0
-        },
-        {
-          "id": 15,
-          "category": "multimodal",
-          "score": 2.0
-        },
-        {
-          "id": 16,
-          "category": "multimodal",
-          "score": 1.0
-        }
-      ],
-      "variants": {
-        "all": {
-          "score": {
-            "pts": 26,
-            "max": 48,
-            "pct": 54.2,
-            "ci_lo": 41.7,
-            "ci_hi": 66.7,
-            "rank": 4,
-            "tied": false,
-            "coverage": 1.0,
-            "low_coverage": false,
-            "by_category": {
-              "fixture_code": 42,
-              "fixture_format": 56,
-              "fixture_knowledge": 78,
-              "fixture_reasoning": 50,
-              "multimodal": 50
-            }
-          },
-          "check": {
-            "pct": 57.6,
-            "ci_lo": 43.4,
-            "ci_hi": 70.5,
-            "rank": 4,
-            "tied": false,
-            "coverage": 1.0,
-            "low_coverage": false,
-            "by_category": {
-              "fixture_code": 48,
-              "fixture_format": 54,
-              "fixture_knowledge": 84,
-              "fixture_reasoning": 55,
-              "multimodal": 48
-            }
-          }
-        },
-        "text": {
-          "score": {
-            "pts": 23,
-            "max": 42,
-            "pct": 54.8,
-            "ci_lo": 40.5,
-            "ci_hi": 69.0,
-            "rank": 4,
-            "tied": false,
-            "coverage": 1.0,
-            "low_coverage": false,
-            "by_category": {
-              "fixture_code": 42,
-              "fixture_format": 56,
-              "fixture_knowledge": 78,
-              "fixture_reasoning": 50
-            }
-          },
-          "check": {
-            "pct": 59.0,
-            "ci_lo": 43.3,
-            "ci_hi": 73.7,
-            "rank": 4,
-            "tied": false,
-            "coverage": 1.0,
-            "low_coverage": false,
-            "by_category": {
-              "fixture_code": 48,
-              "fixture_format": 54,
-              "fixture_knowledge": 84,
-              "fixture_reasoning": 55
-            }
-          }
-        }
-      }
-    },
-    {
-      "model": "example-model-delta-14b",
-      "judge_model": "fixture-judge-1",
-      "self_judged": false,
-      "hardware": {
-        "name": "Fixture Chip A",
-        "memory": "64 GB"
-      },
-      "is_local": true,
-      "n_runs": 1,
-      "tok_per_sec": 63.2,
-      "avg_time": 31.6,
-      "per_prompt": [
-        {
-          "id": 1,
-          "category": "fixture_code",
-          "score": 2.0
-        },
-        {
-          "id": 2,
-          "category": "fixture_code",
-          "score": 3.0
-        },
-        {
-          "id": 3,
-          "category": "fixture_code",
-          "score": 0.0
-        },
-        {
-          "id": 4,
-          "category": "fixture_code",
+          "category": "distributed_systems",
           "score": 1.0
         },
         {
           "id": 5,
-          "category": "fixture_reasoning",
-          "score": 2.0
+          "category": "ml_architecture",
+          "score": 1.0
         },
         {
           "id": 6,
-          "category": "fixture_reasoning",
+          "category": "python_coding",
           "score": 2.0
         },
         {
           "id": 7,
-          "category": "fixture_reasoning",
+          "category": "business_logic",
           "score": 2.0
         },
         {
           "id": 8,
-          "category": "fixture_reasoning",
-          "score": 3.0
+          "category": "clojure_ecosystem",
+          "score": 0.0
         },
         {
           "id": 9,
-          "category": "fixture_knowledge",
+          "category": "frontend_architecture",
           "score": 1.0
         },
         {
           "id": 10,
-          "category": "fixture_knowledge",
-          "score": 1.0
-        },
-        {
-          "id": 11,
-          "category": "fixture_knowledge",
-          "score": 2.0
-        },
-        {
-          "id": 12,
-          "category": "fixture_format",
-          "score": 1.0
-        },
-        {
-          "id": 13,
-          "category": "fixture_format",
-          "score": 1.0
-        },
-        {
-          "id": 14,
-          "category": "fixture_format",
-          "score": 1.0
-        },
-        {
-          "id": 15,
-          "category": "multimodal",
-          "score": 0.0
-        },
-        {
-          "id": 16,
-          "category": "multimodal",
-          "score": 2.0
-        }
-      ],
-      "variants": {
-        "all": {
-          "score": {
-            "pts": 24,
-            "max": 48,
-            "pct": 50.0,
-            "ci_lo": 35.4,
-            "ci_hi": 64.6,
-            "rank": 4,
-            "tied": true,
-            "coverage": 1.0,
-            "low_coverage": false,
-            "by_category": {
-              "fixture_code": 50,
-              "fixture_format": 33,
-              "fixture_knowledge": 44,
-              "fixture_reasoning": 75,
-              "multimodal": 33
-            }
-          },
-          "check": {
-            "pct": 52.3,
-            "ci_lo": 39.4,
-            "ci_hi": 65.9,
-            "rank": 4,
-            "tied": true,
-            "coverage": 1.0,
-            "low_coverage": false,
-            "by_category": {
-              "fixture_code": 56,
-              "fixture_format": 35,
-              "fixture_knowledge": 45,
-              "fixture_reasoning": 75,
-              "multimodal": 35
-            }
-          }
-        },
-        "text": {
-          "score": {
-            "pts": 22,
-            "max": 42,
-            "pct": 52.4,
-            "ci_lo": 38.1,
-            "ci_hi": 66.7,
-            "rank": 4,
-            "tied": true,
-            "coverage": 1.0,
-            "low_coverage": false,
-            "by_category": {
-              "fixture_code": 50,
-              "fixture_format": 33,
-              "fixture_knowledge": 44,
-              "fixture_reasoning": 75
-            }
-          },
-          "check": {
-            "pct": 54.8,
-            "ci_lo": 40.9,
-            "ci_hi": 69.1,
-            "rank": 4,
-            "tied": true,
-            "coverage": 1.0,
-            "low_coverage": false,
-            "by_category": {
-              "fixture_code": 56,
-              "fixture_format": 35,
-              "fixture_knowledge": 45,
-              "fixture_reasoning": 75
-            }
-          }
-        }
-      }
-    },
-    {
-      "model": "example-model-epsilon-3b",
-      "judge_model": "fixture-judge-1",
-      "self_judged": false,
-      "hardware": {
-        "name": "Fixture Chip A",
-        "memory": "64 GB"
-      },
-      "is_local": true,
-      "n_runs": 1,
-      "tok_per_sec": 140.3,
-      "avg_time": 14.3,
-      "per_prompt": [
-        {
-          "id": 1,
-          "category": "fixture_code",
-          "score": 0.0
-        },
-        {
-          "id": 2,
-          "category": "fixture_code",
-          "score": 2.0
-        },
-        {
-          "id": 3,
-          "category": "fixture_code",
-          "score": 0.0
-        },
-        {
-          "id": 4,
-          "category": "fixture_code",
-          "score": 1.0
-        },
-        {
-          "id": 5,
-          "category": "fixture_reasoning",
-          "score": 3.0
-        },
-        {
-          "id": 6,
-          "category": "fixture_reasoning",
-          "score": 2.0
-        },
-        {
-          "id": 7,
-          "category": "fixture_reasoning",
-          "score": 3.0
-        },
-        {
-          "id": 8,
-          "category": "fixture_reasoning",
-          "score": 2.0
-        },
-        {
-          "id": 9,
-          "category": "fixture_knowledge",
-          "score": 1.0
-        },
-        {
-          "id": 10,
-          "category": "fixture_knowledge",
+          "category": "domain_knowledge",
           "score": 2.0
         },
         {
           "id": 11,
-          "category": "fixture_knowledge",
+          "category": "system_design",
           "score": 2.0
         },
         {
           "id": 12,
-          "category": "fixture_format",
+          "category": "observability",
           "score": 1.0
         },
         {
           "id": 13,
-          "category": "fixture_format",
-          "score": 1.0
+          "category": "networking",
+          "score": 2.0
         },
         {
           "id": 14,
-          "category": "fixture_format",
-          "score": 1.0
+          "category": "math_estimation",
+          "score": 2.0
         },
         {
           "id": 15,
-          "category": "multimodal",
+          "category": "diagnostic_reasoning",
           "score": 1.0
         },
         {
           "id": 16,
-          "category": "multimodal",
+          "category": "meta",
+          "score": 2.0
+        },
+        {
+          "id": 17,
+          "category": "chemistry",
+          "score": 2.0
+        },
+        {
+          "id": 18,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 19,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 20,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 21,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 22,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 23,
+          "category": "assistant_competence",
           "score": 0.0
         }
       ],
       "variants": {
         "all": {
           "score": {
-            "pts": 22,
-            "max": 48,
-            "pct": 45.8,
-            "ci_lo": 31.2,
-            "ci_hi": 60.4,
-            "rank": 4,
-            "tied": true,
-            "coverage": 1.0,
+            "pts": 32,
+            "max": 66,
+            "pct": 48.5,
+            "ci_lo": 37.9,
+            "ci_hi": 57.6,
+            "rank": 18,
+            "tied": false,
+            "coverage": 0.957,
             "low_coverage": false,
             "by_category": {
-              "fixture_code": 25,
-              "fixture_format": 33,
-              "fixture_knowledge": 56,
-              "fixture_reasoning": 83,
-              "multimodal": 17
+              "assistant_competence": 56,
+              "business_logic": 67,
+              "chemistry": 67,
+              "clojure_code": 33,
+              "clojure_ecosystem": 0,
+              "diagnostic_reasoning": 33,
+              "distributed_systems": 33,
+              "domain_knowledge": 67,
+              "frontend_architecture": 33,
+              "math_estimation": 67,
+              "meta": 67,
+              "ml_architecture": 33,
+              "multimodal": null,
+              "networking": 67,
+              "observability": 33,
+              "python_coding": 67,
+              "security": 0,
+              "system_design": 67
             }
           },
-          "check": {
-            "pct": 43.9,
-            "ci_lo": 27.6,
-            "ci_hi": 60.5,
-            "rank": 4,
-            "tied": true,
-            "coverage": 1.0,
-            "low_coverage": false,
-            "by_category": {
-              "fixture_code": 28,
-              "fixture_format": 22,
-              "fixture_knowledge": 48,
-              "fixture_reasoning": 88,
-              "multimodal": 17
-            }
-          }
+          "check": null
         },
         "text": {
           "score": {
-            "pts": 21,
-            "max": 42,
-            "pct": 50.0,
+            "pts": 32,
+            "max": 66,
+            "pct": 48.5,
+            "ci_lo": 37.9,
+            "ci_hi": 57.6,
+            "rank": 18,
+            "tied": false,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "assistant_competence": 56,
+              "business_logic": 67,
+              "chemistry": 67,
+              "clojure_code": 33,
+              "clojure_ecosystem": 0,
+              "diagnostic_reasoning": 33,
+              "distributed_systems": 33,
+              "domain_knowledge": 67,
+              "frontend_architecture": 33,
+              "math_estimation": 67,
+              "meta": 67,
+              "ml_architecture": 33,
+              "networking": 67,
+              "observability": 33,
+              "python_coding": 67,
+              "security": 0,
+              "system_design": 67
+            }
+          },
+          "check": null
+        }
+      }
+    },
+    {
+      "model": "NVIDIA-Nemotron-3.5-Lightning-30B-A3B-bf16",
+      "judge_model": "claude-opus-5-5",
+      "self_judged": false,
+      "hardware": {
+        "name": "Apple M4 Max",
+        "memory": "128 GB"
+      },
+      "is_local": true,
+      "n_runs": 1,
+      "tok_per_sec": 60.1,
+      "avg_time": 57.0,
+      "per_prompt": [
+        {
+          "id": 1,
+          "category": "multimodal",
+          "score": 0.0
+        },
+        {
+          "id": 2,
+          "category": "security",
+          "score": 3.0
+        },
+        {
+          "id": 3,
+          "category": "clojure_code",
+          "score": 0.0
+        },
+        {
+          "id": 4,
+          "category": "distributed_systems",
+          "score": 1.0
+        },
+        {
+          "id": 5,
+          "category": "ml_architecture",
+          "score": 2.0
+        },
+        {
+          "id": 6,
+          "category": "python_coding",
+          "score": 1.0
+        },
+        {
+          "id": 7,
+          "category": "business_logic",
+          "score": 1.0
+        },
+        {
+          "id": 8,
+          "category": "clojure_ecosystem",
+          "score": 0.0
+        },
+        {
+          "id": 9,
+          "category": "frontend_architecture",
+          "score": 1.0
+        },
+        {
+          "id": 10,
+          "category": "domain_knowledge",
+          "score": 1.0
+        },
+        {
+          "id": 11,
+          "category": "system_design",
+          "score": 2.0
+        },
+        {
+          "id": 12,
+          "category": "observability",
+          "score": 1.0
+        },
+        {
+          "id": 13,
+          "category": "networking",
+          "score": 1.0
+        },
+        {
+          "id": 14,
+          "category": "math_estimation",
+          "score": 2.0
+        },
+        {
+          "id": 15,
+          "category": "diagnostic_reasoning",
+          "score": 2.0
+        },
+        {
+          "id": 16,
+          "category": "meta",
+          "score": 1.0
+        },
+        {
+          "id": 17,
+          "category": "chemistry",
+          "score": 3.0
+        },
+        {
+          "id": 18,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 19,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 20,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 21,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 22,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 23,
+          "category": "assistant_competence",
+          "score": 0.0
+        }
+      ],
+      "variants": {
+        "all": {
+          "score": {
+            "pts": 32,
+            "max": 69,
+            "pct": 46.4,
+            "ci_lo": 34.8,
+            "ci_hi": 58.0,
+            "rank": 19,
+            "tied": false,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "assistant_competence": 56,
+              "business_logic": 33,
+              "chemistry": 100,
+              "clojure_code": 0,
+              "clojure_ecosystem": 0,
+              "diagnostic_reasoning": 67,
+              "distributed_systems": 33,
+              "domain_knowledge": 33,
+              "frontend_architecture": 33,
+              "math_estimation": 67,
+              "meta": 33,
+              "ml_architecture": 67,
+              "multimodal": 0,
+              "networking": 33,
+              "observability": 33,
+              "python_coding": 33,
+              "security": 100,
+              "system_design": 67
+            }
+          },
+          "check": null
+        },
+        "text": {
+          "score": {
+            "pts": 32,
+            "max": 66,
+            "pct": 48.5,
+            "ci_lo": 36.4,
+            "ci_hi": 59.1,
+            "rank": 19,
+            "tied": false,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "assistant_competence": 56,
+              "business_logic": 33,
+              "chemistry": 100,
+              "clojure_code": 0,
+              "clojure_ecosystem": 0,
+              "diagnostic_reasoning": 67,
+              "distributed_systems": 33,
+              "domain_knowledge": 33,
+              "frontend_architecture": 33,
+              "math_estimation": 67,
+              "meta": 33,
+              "ml_architecture": 67,
+              "networking": 33,
+              "observability": 33,
+              "python_coding": 33,
+              "security": 100,
+              "system_design": 67
+            }
+          },
+          "check": null
+        }
+      }
+    },
+    {
+      "model": "gemma-4-e4b-it-bf16",
+      "judge_model": "claude-opus-5-5",
+      "self_judged": false,
+      "hardware": {
+        "name": "Apple M5 Max",
+        "memory": "128 GB"
+      },
+      "is_local": true,
+      "n_runs": 1,
+      "tok_per_sec": 39.8,
+      "avg_time": 43.5,
+      "per_prompt": [
+        {
+          "id": 1,
+          "category": "multimodal",
+          "score": 1.0
+        },
+        {
+          "id": 2,
+          "category": "security",
+          "score": 1.0
+        },
+        {
+          "id": 3,
+          "category": "clojure_code",
+          "score": 0.0
+        },
+        {
+          "id": 4,
+          "category": "distributed_systems",
+          "score": 1.0
+        },
+        {
+          "id": 5,
+          "category": "ml_architecture",
+          "score": 2.0
+        },
+        {
+          "id": 6,
+          "category": "python_coding",
+          "score": 1.0
+        },
+        {
+          "id": 7,
+          "category": "business_logic",
+          "score": 2.0
+        },
+        {
+          "id": 8,
+          "category": "clojure_ecosystem",
+          "score": 0.0
+        },
+        {
+          "id": 9,
+          "category": "frontend_architecture",
+          "score": 1.0
+        },
+        {
+          "id": 10,
+          "category": "domain_knowledge",
+          "score": 2.0
+        },
+        {
+          "id": 11,
+          "category": "system_design",
+          "score": 2.0
+        },
+        {
+          "id": 12,
+          "category": "observability",
+          "score": 1.0
+        },
+        {
+          "id": 13,
+          "category": "networking",
+          "score": 1.0
+        },
+        {
+          "id": 14,
+          "category": "math_estimation",
+          "score": 2.0
+        },
+        {
+          "id": 15,
+          "category": "diagnostic_reasoning",
+          "score": 2.0
+        },
+        {
+          "id": 16,
+          "category": "meta",
+          "score": 2.0
+        },
+        {
+          "id": 17,
+          "category": "chemistry",
+          "score": 2.0
+        },
+        {
+          "id": 18,
+          "category": "assistant_competence",
+          "score": 1.0
+        },
+        {
+          "id": 19,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 20,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 21,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 22,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 23,
+          "category": "assistant_competence",
+          "score": 0.0
+        }
+      ],
+      "variants": {
+        "all": {
+          "score": {
+            "pts": 32,
+            "max": 69,
+            "pct": 46.4,
+            "ci_lo": 36.2,
+            "ci_hi": 55.1,
+            "rank": 20,
+            "tied": false,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "assistant_competence": 50,
+              "business_logic": 67,
+              "chemistry": 67,
+              "clojure_code": 0,
+              "clojure_ecosystem": 0,
+              "diagnostic_reasoning": 67,
+              "distributed_systems": 33,
+              "domain_knowledge": 67,
+              "frontend_architecture": 33,
+              "math_estimation": 67,
+              "meta": 67,
+              "ml_architecture": 67,
+              "multimodal": 33,
+              "networking": 33,
+              "observability": 33,
+              "python_coding": 33,
+              "security": 33,
+              "system_design": 67
+            }
+          },
+          "check": null
+        },
+        "text": {
+          "score": {
+            "pts": 31,
+            "max": 66,
+            "pct": 47.0,
+            "ci_lo": 36.4,
+            "ci_hi": 56.1,
+            "rank": 20,
+            "tied": false,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "assistant_competence": 50,
+              "business_logic": 67,
+              "chemistry": 67,
+              "clojure_code": 0,
+              "clojure_ecosystem": 0,
+              "diagnostic_reasoning": 67,
+              "distributed_systems": 33,
+              "domain_knowledge": 67,
+              "frontend_architecture": 33,
+              "math_estimation": 67,
+              "meta": 67,
+              "ml_architecture": 67,
+              "networking": 33,
+              "observability": 33,
+              "python_coding": 33,
+              "security": 33,
+              "system_design": 67
+            }
+          },
+          "check": null
+        }
+      }
+    },
+    {
+      "model": "Laguna-S-2.1-NVFP4-mlx",
+      "judge_model": "claude-opus-5-5",
+      "self_judged": false,
+      "hardware": {
+        "name": "Apple M4 Max",
+        "memory": "128 GB"
+      },
+      "is_local": true,
+      "n_runs": 1,
+      "tok_per_sec": 36.6,
+      "avg_time": 32.0,
+      "per_prompt": [
+        {
+          "id": 1,
+          "category": "multimodal",
+          "score": 0.0
+        },
+        {
+          "id": 2,
+          "category": "security",
+          "score": 1.0
+        },
+        {
+          "id": 3,
+          "category": "clojure_code",
+          "score": 1.0
+        },
+        {
+          "id": 4,
+          "category": "distributed_systems",
+          "score": 1.0
+        },
+        {
+          "id": 5,
+          "category": "ml_architecture",
+          "score": 2.0
+        },
+        {
+          "id": 6,
+          "category": "python_coding",
+          "score": 2.0
+        },
+        {
+          "id": 7,
+          "category": "business_logic",
+          "score": 2.0
+        },
+        {
+          "id": 8,
+          "category": "clojure_ecosystem",
+          "score": 1.0
+        },
+        {
+          "id": 9,
+          "category": "frontend_architecture",
+          "score": 1.0
+        },
+        {
+          "id": 10,
+          "category": "domain_knowledge",
+          "score": 1.0
+        },
+        {
+          "id": 11,
+          "category": "system_design",
+          "score": 2.0
+        },
+        {
+          "id": 12,
+          "category": "observability",
+          "score": 1.0
+        },
+        {
+          "id": 13,
+          "category": "networking",
+          "score": 1.0
+        },
+        {
+          "id": 14,
+          "category": "math_estimation",
+          "score": 2.0
+        },
+        {
+          "id": 15,
+          "category": "diagnostic_reasoning",
+          "score": 2.0
+        },
+        {
+          "id": 16,
+          "category": "meta",
+          "score": 2.0
+        },
+        {
+          "id": 17,
+          "category": "chemistry",
+          "score": 2.0
+        },
+        {
+          "id": 18,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 19,
+          "category": "assistant_competence",
+          "score": 1.0
+        },
+        {
+          "id": 20,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 21,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 22,
+          "category": "assistant_competence",
+          "score": 0.0
+        },
+        {
+          "id": 23,
+          "category": "assistant_competence",
+          "score": 0.0
+        }
+      ],
+      "variants": {
+        "all": {
+          "score": {
+            "pts": 31,
+            "max": 69,
+            "pct": 44.9,
+            "ci_lo": 34.8,
+            "ci_hi": 53.6,
+            "rank": 21,
+            "tied": false,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "assistant_competence": 39,
+              "business_logic": 67,
+              "chemistry": 67,
+              "clojure_code": 33,
+              "clojure_ecosystem": 33,
+              "diagnostic_reasoning": 67,
+              "distributed_systems": 33,
+              "domain_knowledge": 33,
+              "frontend_architecture": 33,
+              "math_estimation": 67,
+              "meta": 67,
+              "ml_architecture": 67,
+              "multimodal": 0,
+              "networking": 33,
+              "observability": 33,
+              "python_coding": 67,
+              "security": 33,
+              "system_design": 67
+            }
+          },
+          "check": null
+        },
+        "text": {
+          "score": {
+            "pts": 31,
+            "max": 66,
+            "pct": 47.0,
+            "ci_lo": 36.4,
+            "ci_hi": 54.5,
+            "rank": 21,
+            "tied": false,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "assistant_competence": 39,
+              "business_logic": 67,
+              "chemistry": 67,
+              "clojure_code": 33,
+              "clojure_ecosystem": 33,
+              "diagnostic_reasoning": 67,
+              "distributed_systems": 33,
+              "domain_knowledge": 33,
+              "frontend_architecture": 33,
+              "math_estimation": 67,
+              "meta": 67,
+              "ml_architecture": 67,
+              "networking": 33,
+              "observability": 33,
+              "python_coding": 67,
+              "security": 33,
+              "system_design": 67
+            }
+          },
+          "check": null
+        }
+      }
+    },
+    {
+      "model": "NVIDIA-Nemotron-3-Nano-30B-A3B-MLX-BF16",
+      "judge_model": "claude-opus-5-5",
+      "self_judged": false,
+      "hardware": {
+        "name": "Apple M5 Max",
+        "memory": "128 GB"
+      },
+      "is_local": true,
+      "n_runs": 1,
+      "tok_per_sec": 65.6,
+      "avg_time": 38.9,
+      "per_prompt": [
+        {
+          "id": 1,
+          "category": "multimodal",
+          "score": 0.0
+        },
+        {
+          "id": 2,
+          "category": "security",
+          "score": 1.0
+        },
+        {
+          "id": 3,
+          "category": "clojure_code",
+          "score": 0.0
+        },
+        {
+          "id": 4,
+          "category": "distributed_systems",
+          "score": 1.0
+        },
+        {
+          "id": 5,
+          "category": "ml_architecture",
+          "score": 1.0
+        },
+        {
+          "id": 6,
+          "category": "python_coding",
+          "score": 2.0
+        },
+        {
+          "id": 7,
+          "category": "business_logic",
+          "score": 2.0
+        },
+        {
+          "id": 8,
+          "category": "clojure_ecosystem",
+          "score": 0.0
+        },
+        {
+          "id": 9,
+          "category": "frontend_architecture",
+          "score": 2.0
+        },
+        {
+          "id": 10,
+          "category": "domain_knowledge",
+          "score": 1.0
+        },
+        {
+          "id": 11,
+          "category": "system_design",
+          "score": 2.0
+        },
+        {
+          "id": 12,
+          "category": "observability",
+          "score": 1.0
+        },
+        {
+          "id": 13,
+          "category": "networking",
+          "score": 1.0
+        },
+        {
+          "id": 14,
+          "category": "math_estimation",
+          "score": 2.0
+        },
+        {
+          "id": 15,
+          "category": "diagnostic_reasoning",
+          "score": 1.0
+        },
+        {
+          "id": 16,
+          "category": "meta",
+          "score": 2.0
+        },
+        {
+          "id": 17,
+          "category": "chemistry",
+          "score": 2.0
+        },
+        {
+          "id": 18,
+          "category": "assistant_competence",
+          "score": 1.0
+        },
+        {
+          "id": 19,
+          "category": "assistant_competence",
+          "score": 1.0
+        },
+        {
+          "id": 20,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 21,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 22,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 23,
+          "category": "assistant_competence",
+          "score": 1.0
+        }
+      ],
+      "variants": {
+        "all": {
+          "score": {
+            "pts": 30,
+            "max": 69,
+            "pct": 43.5,
             "ci_lo": 33.3,
-            "ci_hi": 66.7,
-            "rank": 4,
-            "tied": true,
+            "ci_hi": 52.2,
+            "rank": 22,
+            "tied": false,
             "coverage": 1.0,
             "low_coverage": false,
             "by_category": {
-              "fixture_code": 25,
-              "fixture_format": 33,
-              "fixture_knowledge": 56,
-              "fixture_reasoning": 83
+              "assistant_competence": 50,
+              "business_logic": 67,
+              "chemistry": 67,
+              "clojure_code": 0,
+              "clojure_ecosystem": 0,
+              "diagnostic_reasoning": 33,
+              "distributed_systems": 33,
+              "domain_knowledge": 33,
+              "frontend_architecture": 67,
+              "math_estimation": 67,
+              "meta": 67,
+              "ml_architecture": 33,
+              "multimodal": 0,
+              "networking": 33,
+              "observability": 33,
+              "python_coding": 67,
+              "security": 33,
+              "system_design": 67
             }
           },
-          "check": {
-            "pct": 47.8,
-            "ci_lo": 30.1,
-            "ci_hi": 66.0,
-            "rank": 4,
-            "tied": true,
+          "check": null
+        },
+        "text": {
+          "score": {
+            "pts": 30,
+            "max": 66,
+            "pct": 45.5,
+            "ci_lo": 36.4,
+            "ci_hi": 54.5,
+            "rank": 22,
+            "tied": false,
             "coverage": 1.0,
             "low_coverage": false,
             "by_category": {
-              "fixture_code": 28,
-              "fixture_format": 22,
-              "fixture_knowledge": 48,
-              "fixture_reasoning": 88
+              "assistant_competence": 50,
+              "business_logic": 67,
+              "chemistry": 67,
+              "clojure_code": 0,
+              "clojure_ecosystem": 0,
+              "diagnostic_reasoning": 33,
+              "distributed_systems": 33,
+              "domain_knowledge": 33,
+              "frontend_architecture": 67,
+              "math_estimation": 67,
+              "meta": 67,
+              "ml_architecture": 33,
+              "networking": 33,
+              "observability": 33,
+              "python_coding": 67,
+              "security": 33,
+              "system_design": 67
             }
-          }
+          },
+          "check": null
         }
       }
     },
     {
-      "model": "example-model-partial-24b",
-      "judge_model": "fixture-judge-1",
+      "model": "Mistral-Small-4-119B-2603-5bit",
+      "judge_model": "claude-opus-5-5",
       "self_judged": false,
       "hardware": {
-        "name": "Fixture Chip A",
-        "memory": "64 GB"
+        "name": "Apple M5 Max",
+        "memory": "128 GB"
       },
       "is_local": true,
       "n_runs": 1,
-      "tok_per_sec": 30.0,
-      "avg_time": 66.7,
+      "tok_per_sec": 46.0,
+      "avg_time": 21.9,
       "per_prompt": [
         {
           "id": 1,
-          "category": "fixture_code",
-          "score": 3.0
+          "category": "multimodal",
+          "score": 1.0
         },
         {
           "id": 2,
-          "category": "fixture_code",
-          "score": 2.0
+          "category": "security",
+          "score": 1.0
         },
         {
           "id": 3,
-          "category": "fixture_code",
-          "score": 2.0
+          "category": "clojure_code",
+          "score": 1.0
         },
         {
           "id": 4,
-          "category": "fixture_code",
-          "score": null
+          "category": "distributed_systems",
+          "score": 2.0
         },
         {
           "id": 5,
-          "category": "fixture_reasoning",
-          "score": 2.0
+          "category": "ml_architecture",
+          "score": 1.0
         },
         {
           "id": 6,
-          "category": "fixture_reasoning",
-          "score": 2.0
+          "category": "python_coding",
+          "score": 1.0
         },
         {
           "id": 7,
-          "category": "fixture_reasoning",
+          "category": "business_logic",
           "score": 2.0
         },
         {
           "id": 8,
-          "category": "fixture_reasoning",
-          "score": null
+          "category": "clojure_ecosystem",
+          "score": 1.0
         },
         {
           "id": 9,
-          "category": "fixture_knowledge",
-          "score": 3.0
+          "category": "frontend_architecture",
+          "score": 1.0
         },
         {
           "id": 10,
-          "category": "fixture_knowledge",
+          "category": "domain_knowledge",
           "score": 2.0
         },
         {
           "id": 11,
-          "category": "fixture_knowledge",
-          "score": 3.0
+          "category": "system_design",
+          "score": 2.0
         },
         {
           "id": 12,
-          "category": "fixture_format",
-          "score": null
+          "category": "observability",
+          "score": 1.0
         },
         {
           "id": 13,
-          "category": "fixture_format",
-          "score": null
+          "category": "networking",
+          "score": 1.0
         },
         {
           "id": 14,
-          "category": "fixture_format",
+          "category": "math_estimation",
           "score": 2.0
         },
         {
           "id": 15,
-          "category": "multimodal",
-          "score": 3.0
+          "category": "diagnostic_reasoning",
+          "score": 1.0
         },
         {
           "id": 16,
-          "category": "multimodal",
-          "score": 3.0
+          "category": "meta",
+          "score": 2.0
+        },
+        {
+          "id": 17,
+          "category": "chemistry",
+          "score": 2.0
+        },
+        {
+          "id": 18,
+          "category": "assistant_competence",
+          "score": 1.0
+        },
+        {
+          "id": 19,
+          "category": "assistant_competence",
+          "score": 1.0
+        },
+        {
+          "id": 20,
+          "category": "assistant_competence",
+          "score": 0.0
+        },
+        {
+          "id": 21,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 22,
+          "category": "assistant_competence",
+          "score": 1.0
+        },
+        {
+          "id": 23,
+          "category": "assistant_competence",
+          "score": 0.0
         }
       ],
       "variants": {
         "all": {
           "score": {
             "pts": 29,
-            "max": 36,
-            "pct": 80.6,
-            "ci_lo": 72.2,
-            "ci_hi": 88.9,
-            "rank": 7,
+            "max": 69,
+            "pct": 42.0,
+            "ci_lo": 33.3,
+            "ci_hi": 49.3,
+            "rank": 23,
             "tied": false,
-            "coverage": 0.75,
-            "low_coverage": true,
+            "coverage": 1.0,
+            "low_coverage": false,
             "by_category": {
-              "fixture_code": 78,
-              "fixture_format": 67,
-              "fixture_knowledge": 89,
-              "fixture_reasoning": 67,
-              "multimodal": 100
+              "assistant_competence": 28,
+              "business_logic": 67,
+              "chemistry": 67,
+              "clojure_code": 33,
+              "clojure_ecosystem": 33,
+              "diagnostic_reasoning": 33,
+              "distributed_systems": 67,
+              "domain_knowledge": 67,
+              "frontend_architecture": 33,
+              "math_estimation": 67,
+              "meta": 67,
+              "ml_architecture": 33,
+              "multimodal": 33,
+              "networking": 33,
+              "observability": 33,
+              "python_coding": 33,
+              "security": 33,
+              "system_design": 67
             }
           },
-          "check": {
-            "pct": 77.0,
-            "ci_lo": 66.0,
-            "ci_hi": 88.3,
-            "rank": 7,
-            "tied": false,
-            "coverage": 0.75,
-            "low_coverage": true,
-            "by_category": {
-              "fixture_code": 81,
-              "fixture_format": 62,
-              "fixture_knowledge": 86,
-              "fixture_reasoning": 54,
-              "multimodal": 100
-            }
-          }
+          "check": null
         },
         "text": {
           "score": {
-            "pts": 23,
-            "max": 30,
-            "pct": 76.7,
-            "ci_lo": 66.7,
-            "ci_hi": 86.7,
-            "rank": 7,
+            "pts": 28,
+            "max": 66,
+            "pct": 42.4,
+            "ci_lo": 33.3,
+            "ci_hi": 50.0,
+            "rank": 23,
             "tied": false,
-            "coverage": 0.714,
-            "low_coverage": true,
+            "coverage": 1.0,
+            "low_coverage": false,
             "by_category": {
-              "fixture_code": 78,
-              "fixture_format": 67,
-              "fixture_knowledge": 89,
-              "fixture_reasoning": 67
+              "assistant_competence": 28,
+              "business_logic": 67,
+              "chemistry": 67,
+              "clojure_code": 33,
+              "clojure_ecosystem": 33,
+              "diagnostic_reasoning": 33,
+              "distributed_systems": 67,
+              "domain_knowledge": 67,
+              "frontend_architecture": 33,
+              "math_estimation": 67,
+              "meta": 67,
+              "ml_architecture": 33,
+              "networking": 33,
+              "observability": 33,
+              "python_coding": 33,
+              "security": 33,
+              "system_design": 67
             }
           },
-          "check": {
-            "pct": 72.4,
-            "ci_lo": 61.1,
-            "ci_hi": 83.9,
-            "rank": 7,
+          "check": null
+        }
+      }
+    },
+    {
+      "model": "gpt-oss-20b-MXFP4-Q8",
+      "judge_model": "claude-opus-5-5",
+      "self_judged": false,
+      "hardware": {
+        "name": "Apple M5 Max",
+        "memory": "128 GB"
+      },
+      "is_local": true,
+      "n_runs": 1,
+      "tok_per_sec": 112.3,
+      "avg_time": 41.3,
+      "per_prompt": [
+        {
+          "id": 1,
+          "category": "multimodal",
+          "score": 0.0
+        },
+        {
+          "id": 2,
+          "category": "security",
+          "score": 1.0
+        },
+        {
+          "id": 3,
+          "category": "clojure_code",
+          "score": null
+        },
+        {
+          "id": 4,
+          "category": "distributed_systems",
+          "score": 1.0
+        },
+        {
+          "id": 5,
+          "category": "ml_architecture",
+          "score": 1.0
+        },
+        {
+          "id": 6,
+          "category": "python_coding",
+          "score": 2.0
+        },
+        {
+          "id": 7,
+          "category": "business_logic",
+          "score": 2.0
+        },
+        {
+          "id": 8,
+          "category": "clojure_ecosystem",
+          "score": 0.0
+        },
+        {
+          "id": 9,
+          "category": "frontend_architecture",
+          "score": null
+        },
+        {
+          "id": 10,
+          "category": "domain_knowledge",
+          "score": 1.0
+        },
+        {
+          "id": 11,
+          "category": "system_design",
+          "score": 2.0
+        },
+        {
+          "id": 12,
+          "category": "observability",
+          "score": 1.0
+        },
+        {
+          "id": 13,
+          "category": "networking",
+          "score": 1.0
+        },
+        {
+          "id": 14,
+          "category": "math_estimation",
+          "score": 2.0
+        },
+        {
+          "id": 15,
+          "category": "diagnostic_reasoning",
+          "score": 1.0
+        },
+        {
+          "id": 16,
+          "category": "meta",
+          "score": 2.0
+        },
+        {
+          "id": 17,
+          "category": "chemistry",
+          "score": 2.0
+        },
+        {
+          "id": 18,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 19,
+          "category": "assistant_competence",
+          "score": 1.0
+        },
+        {
+          "id": 20,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 21,
+          "category": "assistant_competence",
+          "score": 0.0
+        },
+        {
+          "id": 22,
+          "category": "assistant_competence",
+          "score": 0.0
+        },
+        {
+          "id": 23,
+          "category": "assistant_competence",
+          "score": null
+        }
+      ],
+      "variants": {
+        "all": {
+          "score": {
+            "pts": 24,
+            "max": 60,
+            "pct": 40.0,
+            "ci_lo": 30.0,
+            "ci_hi": 50.0,
+            "rank": 24,
             "tied": false,
-            "coverage": 0.714,
-            "low_coverage": true,
+            "coverage": 0.87,
+            "low_coverage": false,
             "by_category": {
-              "fixture_code": 81,
-              "fixture_format": 62,
-              "fixture_knowledge": 86,
-              "fixture_reasoning": 54
+              "assistant_competence": 33,
+              "business_logic": 67,
+              "chemistry": 67,
+              "clojure_code": null,
+              "clojure_ecosystem": 0,
+              "diagnostic_reasoning": 33,
+              "distributed_systems": 33,
+              "domain_knowledge": 33,
+              "frontend_architecture": null,
+              "math_estimation": 67,
+              "meta": 67,
+              "ml_architecture": 33,
+              "multimodal": 0,
+              "networking": 33,
+              "observability": 33,
+              "python_coding": 67,
+              "security": 33,
+              "system_design": 67
             }
-          }
+          },
+          "check": null
+        },
+        "text": {
+          "score": {
+            "pts": 24,
+            "max": 57,
+            "pct": 42.1,
+            "ci_lo": 31.6,
+            "ci_hi": 52.6,
+            "rank": 24,
+            "tied": false,
+            "coverage": 0.864,
+            "low_coverage": false,
+            "by_category": {
+              "assistant_competence": 33,
+              "business_logic": 67,
+              "chemistry": 67,
+              "clojure_code": null,
+              "clojure_ecosystem": 0,
+              "diagnostic_reasoning": 33,
+              "distributed_systems": 33,
+              "domain_knowledge": 33,
+              "frontend_architecture": null,
+              "math_estimation": 67,
+              "meta": 67,
+              "ml_architecture": 33,
+              "networking": 33,
+              "observability": 33,
+              "python_coding": 67,
+              "security": 33,
+              "system_design": 67
+            }
+          },
+          "check": null
+        }
+      }
+    },
+    {
+      "model": "gemma-4-e2b-it-bf16",
+      "judge_model": "claude-opus-5-5",
+      "self_judged": false,
+      "hardware": {
+        "name": "Apple M5 Max",
+        "memory": "128 GB"
+      },
+      "is_local": true,
+      "n_runs": 1,
+      "tok_per_sec": 72.4,
+      "avg_time": 23.4,
+      "per_prompt": [
+        {
+          "id": 1,
+          "category": "multimodal",
+          "score": 1.0
+        },
+        {
+          "id": 2,
+          "category": "security",
+          "score": 1.0
+        },
+        {
+          "id": 3,
+          "category": "clojure_code",
+          "score": 0.0
+        },
+        {
+          "id": 4,
+          "category": "distributed_systems",
+          "score": 1.0
+        },
+        {
+          "id": 5,
+          "category": "ml_architecture",
+          "score": 1.0
+        },
+        {
+          "id": 6,
+          "category": "python_coding",
+          "score": 1.0
+        },
+        {
+          "id": 7,
+          "category": "business_logic",
+          "score": 1.0
+        },
+        {
+          "id": 8,
+          "category": "clojure_ecosystem",
+          "score": 0.0
+        },
+        {
+          "id": 9,
+          "category": "frontend_architecture",
+          "score": 1.0
+        },
+        {
+          "id": 10,
+          "category": "domain_knowledge",
+          "score": 1.0
+        },
+        {
+          "id": 11,
+          "category": "system_design",
+          "score": 2.0
+        },
+        {
+          "id": 12,
+          "category": "observability",
+          "score": 1.0
+        },
+        {
+          "id": 13,
+          "category": "networking",
+          "score": 1.0
+        },
+        {
+          "id": 14,
+          "category": "math_estimation",
+          "score": 2.0
+        },
+        {
+          "id": 15,
+          "category": "diagnostic_reasoning",
+          "score": 2.0
+        },
+        {
+          "id": 16,
+          "category": "meta",
+          "score": 2.0
+        },
+        {
+          "id": 17,
+          "category": "chemistry",
+          "score": 2.0
+        },
+        {
+          "id": 18,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 19,
+          "category": "assistant_competence",
+          "score": 1.0
+        },
+        {
+          "id": 20,
+          "category": "assistant_competence",
+          "score": 0.0
+        },
+        {
+          "id": 21,
+          "category": "assistant_competence",
+          "score": 1.0
+        },
+        {
+          "id": 22,
+          "category": "assistant_competence",
+          "score": 2.0
+        },
+        {
+          "id": 23,
+          "category": "assistant_competence",
+          "score": 0.0
+        }
+      ],
+      "variants": {
+        "all": {
+          "score": {
+            "pts": 26,
+            "max": 69,
+            "pct": 37.7,
+            "ci_lo": 27.5,
+            "ci_hi": 46.4,
+            "rank": 25,
+            "tied": false,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "assistant_competence": 33,
+              "business_logic": 33,
+              "chemistry": 67,
+              "clojure_code": 0,
+              "clojure_ecosystem": 0,
+              "diagnostic_reasoning": 67,
+              "distributed_systems": 33,
+              "domain_knowledge": 33,
+              "frontend_architecture": 33,
+              "math_estimation": 67,
+              "meta": 67,
+              "ml_architecture": 33,
+              "multimodal": 33,
+              "networking": 33,
+              "observability": 33,
+              "python_coding": 33,
+              "security": 33,
+              "system_design": 67
+            }
+          },
+          "check": null
+        },
+        "text": {
+          "score": {
+            "pts": 25,
+            "max": 66,
+            "pct": 37.9,
+            "ci_lo": 28.8,
+            "ci_hi": 47.0,
+            "rank": 25,
+            "tied": false,
+            "coverage": 1.0,
+            "low_coverage": false,
+            "by_category": {
+              "assistant_competence": 33,
+              "business_logic": 33,
+              "chemistry": 67,
+              "clojure_code": 0,
+              "clojure_ecosystem": 0,
+              "diagnostic_reasoning": 67,
+              "distributed_systems": 33,
+              "domain_knowledge": 33,
+              "frontend_architecture": 33,
+              "math_estimation": 67,
+              "meta": 67,
+              "ml_architecture": 33,
+              "networking": 33,
+              "observability": 33,
+              "python_coding": 33,
+              "security": 33,
+              "system_design": 67
+            }
+          },
+          "check": null
         }
       }
     }
